@@ -1,20 +1,4 @@
-export type QuestionType = "single" | "multi" | "text" | "number";
-
-export interface AssessmentOption {
-  code: string;
-  label: string;
-  summary: string;
-  jumpTo?: string;
-}
-
-export interface AssessmentQuestion {
-  section: "C" | "D" | "E" | "F";
-  key: string;
-  title: string;
-  type: QuestionType;
-  note?: string;
-  options?: AssessmentOption[];
-}
+import type { AssessmentOption, AssessmentQuestion } from "../types";
 
 const opt = (
   code: string,
@@ -31,7 +15,7 @@ const opt = (
 export const C_ASSESSMENT: AssessmentQuestion[] = [
   {
     section: "C",
-    key: "C1",
+    id: "C1",
     title: "個案意識狀態",
     type: "single",
     options: [
@@ -45,7 +29,7 @@ export const C_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "C",
-    key: "C1a",
+    id: "C1a",
     title: "能對外來刺激做出有意義反應的能力",
     type: "single",
     options: [
@@ -56,7 +40,7 @@ export const C_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "C",
-    key: "C2",
+    id: "C2",
     title: "個案視力（在光線充足和戴眼鏡的情況下）",
     type: "single",
     options: [
@@ -71,7 +55,7 @@ export const C_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "C",
-    key: "C3",
+    id: "C3",
     title: "個案聽力（可使用助聽器）",
     type: "single",
     options: [
@@ -84,7 +68,7 @@ export const C_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "C",
-    key: "C4",
+    id: "C4",
     title: "個案表達能力（包含語言或非語言）",
     type: "single",
     options: [
@@ -97,7 +81,7 @@ export const C_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "C",
-    key: "C5",
+    id: "C5",
     title: "個案理解能力",
     type: "single",
     options: [
@@ -113,7 +97,7 @@ export const C_ASSESSMENT: AssessmentQuestion[] = [
 export const D_ASSESSMENT: AssessmentQuestion[] = [
   {
     section: "D",
-    key: "D0",
+    id: "D0",
     title: "D大題是否可由個案本人回答",
     type: "single",
     options: [
@@ -124,7 +108,7 @@ export const D_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "D",
-    key: "D1a",
+    id: "D1a",
     title: "重複三個詞：襪子、藍色、床，可重複的詞數",
     type: "single",
     options: [
@@ -136,7 +120,7 @@ export const D_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "D",
-    key: "D1b1",
+    id: "D1b1",
     title: "回憶起「襪子」",
     type: "single",
     options: [
@@ -147,7 +131,7 @@ export const D_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "D",
-    key: "D1b2",
+    id: "D1b2",
     title: "回憶起「藍色」",
     type: "single",
     options: [
@@ -158,7 +142,7 @@ export const D_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "D",
-    key: "D1b3",
+    id: "D1b3",
     title: "回憶起「床鋪」",
     type: "single",
     options: [
@@ -172,7 +156,7 @@ export const D_ASSESSMENT: AssessmentQuestion[] = [
 export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   {
     section: "E",
-    key: "E1",
+    id: "E1",
     title: "吃飯",
     type: "single",
     note: "不包含自行準備食物、餐具或盛裝食物等。",
@@ -184,7 +168,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "E",
-    key: "E2",
+    id: "E2",
     title: "洗澡",
     type: "single",
     options: [
@@ -194,7 +178,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "E",
-    key: "E3",
+    id: "E3",
     title: "個人修飾",
     type: "single",
     note: "包括自行洗臉、洗手、刷牙、梳頭、刮鬍子。",
@@ -205,7 +189,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "E",
-    key: "E4",
+    id: "E4",
     title: "穿脫衣物",
     type: "single",
     note: "包括穿脫衣、褲、鞋、襪。",
@@ -217,7 +201,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "E",
-    key: "E5",
+    id: "E5",
     title: "大便控制",
     type: "single",
     options: [
@@ -228,7 +212,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "E",
-    key: "E6",
+    id: "E6",
     title: "小便控制",
     type: "single",
     options: [
@@ -239,7 +223,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "E",
-    key: "E7",
+    id: "E7",
     title: "上廁所",
     type: "single",
     options: [
@@ -250,7 +234,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "E",
-    key: "E8",
+    id: "E8",
     title: "移位",
     type: "single",
     options: [
@@ -262,7 +246,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "E",
-    key: "E9",
+    id: "E9",
     title: "走路",
     type: "single",
     options: [
@@ -274,7 +258,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "E",
-    key: "E10",
+    id: "E10",
     title: "上下樓梯",
     type: "single",
     options: [
@@ -285,7 +269,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "E",
-    key: "E11",
+    id: "E11",
     title: "目前行動能力",
     type: "single",
     options: [
@@ -301,7 +285,7 @@ export const E_ADL_ASSESSMENT: AssessmentQuestion[] = [
 export const F_IADL_ASSESSMENT: AssessmentQuestion[] = [
   {
     section: "F",
-    key: "F1",
+    id: "F1",
     title: "使用電話",
     type: "single",
     options: [
@@ -313,7 +297,7 @@ export const F_IADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "F",
-    key: "F2",
+    id: "F2",
     title: "購物",
     type: "single",
     options: [
@@ -325,7 +309,7 @@ export const F_IADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "F",
-    key: "F3",
+    id: "F3",
     title: "備餐",
     type: "single",
     options: [
@@ -337,7 +321,7 @@ export const F_IADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "F",
-    key: "F4",
+    id: "F4",
     title: "處理家務",
     type: "single",
     options: [
@@ -350,7 +334,7 @@ export const F_IADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "F",
-    key: "F5",
+    id: "F5",
     title: "洗衣服",
     type: "single",
     options: [
@@ -361,7 +345,7 @@ export const F_IADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "F",
-    key: "F6",
+    id: "F6",
     title: "外出",
     type: "single",
     options: [
@@ -374,7 +358,7 @@ export const F_IADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "F",
-    key: "F7",
+    id: "F7",
     title: "服用藥物",
     type: "single",
     options: [
@@ -385,7 +369,7 @@ export const F_IADL_ASSESSMENT: AssessmentQuestion[] = [
   },
   {
     section: "F",
-    key: "F8",
+    id: "F8",
     title: "處理財務的能力",
     type: "single",
     options: [
@@ -396,9 +380,41 @@ export const F_IADL_ASSESSMENT: AssessmentQuestion[] = [
   },
 ];
 
-export const CORE_ASSESSMENT = [
+export const CORE_ASSESSMENT: AssessmentQuestion[] = [
   ...C_ASSESSMENT,
   ...D_ASSESSMENT,
   ...E_ADL_ASSESSMENT,
   ...F_IADL_ASSESSMENT,
+];
+
+export const G_TEST_ASSESSMENT: AssessmentQuestion[] = [
+  {
+    section: "G",
+    id: "G1",
+    title: "疼痛情形",
+    type: "multi",
+    options: [
+      opt("G1-1", "無疼痛", "個案目前無明顯疼痛情形。"),
+      opt("G1-2", "關節疼痛", "個案有關節疼痛情形。"),
+      opt("G1-3", "下背痛", "個案有下背痛情形。"),
+      opt("G1-4", "其他疼痛", "個案有其他疼痛情形。"),
+    ],
+  },
+  {
+    section: "G",
+    id: "G1-note",
+    title: "疼痛補充說明",
+    type: "text",
+  },
+  {
+    section: "G",
+    id: "G4d-score",
+    title: "SOF 衰弱評估分數",
+    type: "number",
+  },
+];
+
+export const assessmentOptions: AssessmentQuestion[] = [
+  ...CORE_ASSESSMENT,
+  ...G_TEST_ASSESSMENT,
 ];

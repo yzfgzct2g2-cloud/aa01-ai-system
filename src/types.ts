@@ -17,6 +17,34 @@ export interface PlannedService {
   purchaseType?: PurchaseType;
 }
 
+export type AssessmentQuestionType = "single" | "multi" | "text" | "number";
+
+export interface AssessmentOption {
+  code: string;
+  label: string;
+  summary: string;
+  jumpTo?: string;
+}
+
+export interface AssessmentQuestion {
+  id: string;
+  title: string;
+  type: AssessmentQuestionType;
+  options?: AssessmentOption[];
+  section?: "C" | "D" | "E" | "F" | "G";
+  note?: string;
+}
+
+export type AssessmentAnswerValue = string | string[] | number | "";
+
+export interface AssessmentAnswer {
+  questionId: string;
+  type: AssessmentQuestionType;
+  value: AssessmentAnswerValue;
+  selectedOptions?: AssessmentOption[];
+  text?: string;
+}
+
 export interface AA01Form {
   caseType?: CaseType;
   caseName?: string;
@@ -29,7 +57,7 @@ export interface AA01Form {
   pdfConfirmed?: boolean;
   ocrText?: string;
 
-  assessmentAnswers?: Record<string, string>;
+  assessmentAnswers?: Record<string, AssessmentAnswer>;
 
   consciousness?: string;
   vision?: string;

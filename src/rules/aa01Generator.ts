@@ -1,4 +1,5 @@
 import type { AA01Form, PlannedService } from "../types";
+import { buildAssessmentSummary } from "./assessmentSummary";
 
 function nlJoin(items: string[]) {
   return items.join("\n");
@@ -79,9 +80,52 @@ export function generateGoalSuggestions(form: AA01Form) {
 }
 
 export function buildAA01Draft(form: AA01Form) {
+  const assessmentSummary = buildAssessmentSummary(
+    form.assessmentAnswers ?? {}
+  );
+
   const services = form.services || [];
   const problems = generateProblemAnalysis(form);
   const goals = generateGoalSuggestions(form);
+
+  const legacyCommunicationSummary = [
+    form.consciousness ? `意識${form.consciousness}` : "",
+    form.vision ? `視力${form.vision}` : "",
+    form.hearing ? `聽力${form.hearing}` : "",
+    form.expression ? `表達能力${form.expression}` : "",
+    form.understanding ? `理解能力${form.understanding}` : "",
+  ]
+    .filter(Boolean)
+    .join("；");
+
+  const communicationSummary =
+    assessmentSummary.communicationSummary.join("；") ||
+    legacyCommunicationSummary ||
+    "待補充";
+
+  const memorySummary =
+    assessmentSummary.memorySummary.join("；") ||
+    "待補充";
+
+  const adlSummary =
+    assessmentSummary.adlSummary.join("；") ||
+    "待補充";
+
+  const iadlSummary =
+    assessmentSummary.iadlSummary.join("；") ||
+    "待補充";
+
+  const healthSummary = [...assessmentSummary.healthSummary];
+
+  const sofScore =
+    assessmentSummary.numericAnswers["G4d-score"];
+
+  if (sofScore !== undefined) {
+    healthSummary.push(`SOF衰弱評估分數：${sofScore}分`);
+  }
+
+  const healthSummaryText =
+    healthSummary.join("；") || "待補充";
 
   const now = new Date();
   const rocYear = now.getFullYear() - 1911;
@@ -98,9 +142,13 @@ export function buildAA01Draft(form: AA01Form) {
   const lines = [
     "一、\t個案現況評估",
     "(一)\t身心概況及照顧情形：",
-    `1.\t個案${form.consciousness || "意識狀態待補充"}，視力${form.vision || "待補充"}，聽力${form.hearing || "待補充"}，表達能力${form.expression || "待補充"}，理解能力${form.understanding || "待補充"}。`,
-    `2.\t日常活動功能：${form.adlNote || "待補充"}。工具性日常生活功能：${form.iadlNote || "待補充"}。`,
-    `3.\t疾病史與特殊照護需求：${form.diseaseNote || "待補充"}。`,
+    `1.\t個案溝通與感官能力：${communicationSummary}。`,
+
+`2.\t短期記憶與認知能力：${memorySummary}。`,
+
+`3.\t日常活動功能（ADLs）：${adlSummary}。工具性日常生活功能（IADLs）：${iadlSummary}。`,
+
+`4.\t健康狀況：${healthSummaryText}。`,
 
     "(二)\t家庭功能概況：",
     `1.\t${form.familyNote || "待補充。"}。`,
