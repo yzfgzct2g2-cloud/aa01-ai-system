@@ -18,8 +18,62 @@ function groupProviderText(items: PlannedService[]) {
   return names.length ? names.join("、") : "待確認";
 }
 
+type GhiSummaryKey = "environmentSummary" | "behaviorSummary";
+
+function collectAnswerSummaries(
+  form: AA01Form,
+  prefix: "H" | "I"
+): string[] {
+  return Object.values(form.assessmentAnswers ?? {})
+    .filter((answer) => answer.questionId.startsWith(prefix))
+    .flatMap((answer) => {
+      if (answer.type === "single" || answer.type === "multi") {
+        return (answer.selectedOptions ?? [])
+          .map((option) => option.summary)
+          .filter(Boolean);
+      }
+
+      if (answer.type === "text") {
+        const text =
+          answer.text ??
+          (typeof answer.value === "string" ? answer.value : "");
+        return text ? [text] : [];
+      }
+
+      return [];
+    });
+}
+
+function getGhiSummary(
+  assessmentSummary: ReturnType<typeof buildAssessmentSummary>,
+  key: GhiSummaryKey,
+  form: AA01Form,
+  prefix: "H" | "I"
+): string[] {
+  const extendedSummary = assessmentSummary as ReturnType<
+    typeof buildAssessmentSummary
+  > & Partial<Record<GhiSummaryKey, string[]>>;
+
+  return extendedSummary[key] ?? collectAnswerSummaries(form, prefix);
+}
+
 export function generateProblemAnalysis(form: AA01Form) {
   const services = form.services || [];
+  const assessmentSummary = buildAssessmentSummary(
+    form.assessmentAnswers ?? {}
+  );
+  const environmentSummary = getGhiSummary(
+    assessmentSummary,
+    "environmentSummary",
+    form,
+    "H"
+  );
+  const behaviorSummary = getGhiSummary(
+    assessmentSummary,
+    "behaviorSummary",
+    form,
+    "I"
+  );
 
   return {
     care: [
@@ -38,6 +92,12 @@ export function generateProblemAnalysis(form: AA01Form) {
       hasService(services, "OT01")
         ? "個案備餐或營養攝取需協助，申請營養餐飲服務，以維持基本營養與飲食穩定。"
         : "",
+      assessmentSummary.healthSummary.length
+        ? "個案有特殊健康或照護需求，需依健康狀況安排適切照顧與追蹤。"
+        : "",
+      behaviorSummary.length
+        ? "個案有情緒或行為照顧風險，需評估主要照顧者照顧負荷及安全維護需求。"
+        : "",
     ].filter(Boolean),
 
     transport: hasService(services, "DA01")
@@ -49,18 +109,49 @@ export function generateProblemAnalysis(form: AA01Form) {
         ? ["主要照顧者長期承擔照顧責任，需透過喘息或短照服務減輕照顧壓力並維持家庭照顧量能。"]
         : [],
 
-    environment:
+    environment: [
       hasPrefix(services, "E") || hasPrefix(services, "FA")
-        ? ["個案日常活動及照顧安全需輔具或居家無障礙改善協助，以提升生活安全及照顧便利性。"]
-        : [],
+        ? "個案日常活動及照顧安全需輔具或居家無障礙改善協助，以提升生活安全及照顧便利性。"
+        : "",
+      environmentSummary.length
+        ? "居家環境或社會參與可能影響生活安全與照顧安排，需評估環境改善及支持需求。"
+        : "",
+    ].filter(Boolean),
   };
 }
 
 export function generateGoalSuggestions(form: AA01Form) {
   const services = form.services || [];
+  const assessmentSummary = buildAssessmentSummary(
+    form.assessmentAnswers ?? {}
+  );
+  const environmentSummary = getGhiSummary(
+    assessmentSummary,
+    "environmentSummary",
+    form,
+    "H"
+  );
+  const behaviorSummary = getGhiSummary(
+    assessmentSummary,
+    "behaviorSummary",
+    form,
+    "I"
+  );
   const short = ["維持個案基本生活功能及居家安全。"];
   const mid = ["延緩功能退化並維持照顧穩定性。"];
   const long = ["維持個案於社區穩定生活並提升生活品質。"];
+
+  if (assessmentSummary.healthSummary.length) {
+    short.push("維持個案健康狀況穩定，降低特殊照護風險。");
+  }
+
+  if (environmentSummary.length) {
+    mid.push("改善居家環境安全，降低跌倒及照顧風險。");
+  }
+
+  if (behaviorSummary.length) {
+    mid.push("建立穩定照顧模式，降低情緒及行為問題對生活安全之影響。");
+  }
 
   if (hasService(services, "BA13") || hasService(services, "BA14") || hasService(services, "DA01")) {
     short.push("協助個案安全外出就醫、復健或參與必要活動。");

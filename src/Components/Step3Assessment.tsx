@@ -18,7 +18,9 @@ const sectionTitles = {
   D: "D. 短期記憶評估",
   E: "E. 日常活動功能量表 ADLs",
   F: "F. 工具性日常活動功能量表 IADLs",
-  G: "G. 題型功能測試",
+  G: "G. 特殊複雜照護需要",
+  H: "H. 居家環境與社會參與",
+  I: "I. 情緒及行為型態",
 } as const;
 
 function QuestionBlock({

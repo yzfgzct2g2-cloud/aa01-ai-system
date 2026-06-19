@@ -6,6 +6,8 @@ export interface AssessmentSummary {
   adlSummary: string[];
   iadlSummary: string[];
   healthSummary: string[];
+  environmentSummary: string[];
+  behaviorSummary: string[];
   numericAnswers: Record<string, number>;
 }
 
@@ -17,6 +19,8 @@ const summaryKeyByPrefix: Record<string, SummaryListKey> = {
   E: "adlSummary",
   F: "iadlSummary",
   G: "healthSummary",
+  H: "environmentSummary",
+  I: "behaviorSummary",
 };
 
 function getTextSummaries(answer: AssessmentAnswer): string[] {
@@ -51,6 +55,8 @@ export function buildAssessmentSummary(
     adlSummary: [],
     iadlSummary: [],
     healthSummary: [],
+    environmentSummary: [],
+    behaviorSummary: [],
     numericAnswers: {},
   };
 

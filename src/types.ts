@@ -31,7 +31,7 @@ export interface AssessmentQuestion {
   title: string;
   type: AssessmentQuestionType;
   options?: AssessmentOption[];
-  section?: "C" | "D" | "E" | "F" | "G";
+  section?: "C" | "D" | "E" | "F" | "G" | "H" | "I";
   note?: string;
 }
 

@@ -403,8 +403,14 @@ const question = (
   title: string,
   type: AssessmentQuestion["type"],
   options?: AssessmentOption[],
-  section?: "G"
-): AssessmentQuestion => ({ id, title, type, options, section });
+  section?: AssessmentQuestion["section"]
+): AssessmentQuestion => ({
+  id,
+  title,
+  type,
+  options,
+  section: section ?? (id.charAt(0) as AssessmentQuestion["section"]),
+});
 
 const gQuestion = (
   id: string,
