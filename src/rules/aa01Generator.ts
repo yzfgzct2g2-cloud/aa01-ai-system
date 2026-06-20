@@ -5,6 +5,29 @@ function nlJoin(items: string[]) {
   return items.join("\n");
 }
 
+const missingAssessmentText =
+  "尚未輸入相關評估資料，待個管確認後補充。";
+
+function uniqueTexts(items: string[]) {
+  return [...new Set(items.filter(Boolean))];
+}
+
+function trimTrailingPunctuation(text: string) {
+  return text.trim().replace(/[。；]+$/g, "");
+}
+
+function joinSummary(items: string[]) {
+  return items
+    .map(trimTrailingPunctuation)
+    .filter(Boolean)
+    .join("；");
+}
+
+function asSentence(text: string) {
+  const normalized = trimTrailingPunctuation(text);
+  return normalized ? `${normalized}。` : missingAssessmentText;
+}
+
 function hasService(services: PlannedService[], code: string) {
   return services.some((s) => s.code === code);
 }
@@ -76,7 +99,7 @@ export function generateProblemAnalysis(form: AA01Form) {
   );
 
   return {
-    care: [
+    care: uniqueTexts([
       hasService(services, "BA13")
         ? "個案外出活動需專人陪同，申請陪同外出服務，以維持外出安全及社區參與。"
         : "",
@@ -98,7 +121,7 @@ export function generateProblemAnalysis(form: AA01Form) {
       behaviorSummary.length
         ? "個案有情緒或行為照顧風險，需評估主要照顧者照顧負荷及安全維護需求。"
         : "",
-    ].filter(Boolean),
+    ]),
 
     transport: hasService(services, "DA01")
       ? ["個案外出就醫或復健需交通接送協助，申請交通接送服務，以降低外出移動風險。"]
@@ -109,14 +132,14 @@ export function generateProblemAnalysis(form: AA01Form) {
         ? ["主要照顧者長期承擔照顧責任，需透過喘息或短照服務減輕照顧壓力並維持家庭照顧量能。"]
         : [],
 
-    environment: [
+    environment: uniqueTexts([
       hasPrefix(services, "E") || hasPrefix(services, "FA")
         ? "個案日常活動及照顧安全需輔具或居家無障礙改善協助，以提升生活安全及照顧便利性。"
         : "",
       environmentSummary.length
         ? "居家環境或社會參與可能影響生活安全與照顧安排，需評估環境改善及支持需求。"
         : "",
-    ].filter(Boolean),
+    ]),
   };
 }
 
@@ -137,9 +160,13 @@ export function generateGoalSuggestions(form: AA01Form) {
     form,
     "I"
   );
-  const short = ["維持個案基本生活功能及居家安全。"];
-  const mid = ["延緩功能退化並維持照顧穩定性。"];
-  const long = ["維持個案於社區穩定生活並提升生活品質。"];
+  const short = ["維持個案基本生活照顧穩定，降低立即性照顧風險。"];
+  const mid = [
+    "透過居家服務、專業服務或輔具環境改善，提升日常生活安全與照顧品質。",
+  ];
+  const long = [
+    "維持個案於熟悉環境中生活，延緩失能惡化並減輕照顧者負荷。",
+  ];
 
   if (assessmentSummary.healthSummary.length) {
     short.push("維持個案健康狀況穩定，降低特殊照護風險。");
@@ -190,21 +217,12 @@ export function buildAA01Draft(form: AA01Form) {
     .join("；");
 
   const communicationSummary =
-    assessmentSummary.communicationSummary.join("；") ||
-    legacyCommunicationSummary ||
-    "待補充";
+    joinSummary(assessmentSummary.communicationSummary) ||
+    legacyCommunicationSummary;
 
-  const memorySummary =
-    assessmentSummary.memorySummary.join("；") ||
-    "待補充";
-
-  const adlSummary =
-    assessmentSummary.adlSummary.join("；") ||
-    "待補充";
-
-  const iadlSummary =
-    assessmentSummary.iadlSummary.join("；") ||
-    "待補充";
+  const memorySummary = joinSummary(assessmentSummary.memorySummary);
+  const adlSummary = joinSummary(assessmentSummary.adlSummary);
+  const iadlSummary = joinSummary(assessmentSummary.iadlSummary);
 
   const healthSummary = [...assessmentSummary.healthSummary];
 
@@ -215,8 +233,49 @@ export function buildAA01Draft(form: AA01Form) {
     healthSummary.push(`SOF衰弱評估分數：${sofScore}分`);
   }
 
-  const healthSummaryText =
-    healthSummary.join("；") || "待補充";
+  const healthSummaryText = joinSummary(healthSummary);
+  const environmentSummaryText =
+    joinSummary(
+      getGhiSummary(
+        assessmentSummary,
+        "environmentSummary",
+        form,
+        "H"
+      )
+    ) || trimTrailingPunctuation(form.environmentNote || "");
+  const behaviorSummaryText = joinSummary(
+    getGhiSummary(assessmentSummary, "behaviorSummary", form, "I")
+  );
+
+  const physicalCommunicationParts = [
+    communicationSummary
+      ? `個案溝通與感官能力為${trimTrailingPunctuation(communicationSummary)}`
+      : "",
+    memorySummary
+      ? `短期記憶與認知能力為${memorySummary}`
+      : "",
+  ].filter(Boolean);
+  const physicalCommunicationText = physicalCommunicationParts.length
+    ? `依評估結果，${physicalCommunicationParts.join("；")}。`
+    : missingAssessmentText;
+
+  const dailyLivingParts = [
+    adlSummary ? `個案於 ADLs 評估結果顯示${adlSummary}` : "",
+    iadlSummary ? `IADLs 評估結果顯示${iadlSummary}` : "",
+  ].filter(Boolean);
+  const dailyLivingText = dailyLivingParts.length
+    ? `${dailyLivingParts.join("；")}。`
+    : missingAssessmentText;
+
+  const healthAssessmentText = healthSummaryText
+    ? `個案目前${healthSummaryText}。`
+    : missingAssessmentText;
+  const environmentAssessmentText = environmentSummaryText
+    ? `個案居家環境及社會參與狀況為${environmentSummaryText}。`
+    : missingAssessmentText;
+  const behaviorAssessmentText = behaviorSummaryText
+    ? `個案情緒及行為型態評估結果為${behaviorSummaryText}。`
+    : missingAssessmentText;
 
   const now = new Date();
   const rocYear = now.getFullYear() - 1911;
@@ -233,20 +292,17 @@ export function buildAA01Draft(form: AA01Form) {
   const lines = [
     "一、\t個案現況評估",
     "(一)\t身心概況及照顧情形：",
-    `1.\t個案溝通與感官能力：${communicationSummary}。`,
-
-`2.\t短期記憶與認知能力：${memorySummary}。`,
-
-`3.\t日常活動功能（ADLs）：${adlSummary}。工具性日常生活功能（IADLs）：${iadlSummary}。`,
-
-`4.\t健康狀況：${healthSummaryText}。`,
+    `1.\t身心功能與溝通狀況：${physicalCommunicationText}`,
+    `2.\t日常生活功能：${dailyLivingText}`,
+    `3.\t特殊複雜照護需求：${healthAssessmentText}`,
+    `4.\t居家環境與社會參與：${environmentAssessmentText}`,
+    `5.\t情緒與行為照顧風險：${behaviorAssessmentText}`,
 
     "(二)\t家庭功能概況：",
-    `1.\t${form.familyNote || "待補充。"}。`,
+    `1.\t${asSentence(form.familyNote || "")}`,
 
-    "(三)\t經濟概況：待補充。",
-    "(四)\t社會支持概況：待補充。",
-    `(五)\t輔具及居家環境概況：${form.environmentNote || "待補充"}。`,
+    `(三)\t經濟概況：${missingAssessmentText}`,
+    `(四)\t社會支持概況：${missingAssessmentText}`,
 
     "二、\t案家問題及需求：",
     `(一)\t照顧及專業服務：${problems.care.join("；") || "無。"}`,
