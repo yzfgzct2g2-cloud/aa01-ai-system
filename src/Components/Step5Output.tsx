@@ -8,15 +8,23 @@ export function Step5Output({ form }: { form: AA01Form }) {
 
   return (
     <StepSection title="五、AA01輸出">
-      <textarea className="w-full border p-3" rows={28} value={draft} readOnly />
+      <p className="form-help">系統產生之 AA01 草稿，請個管確認後再使用。</p>
+      <textarea
+        className="form-textarea"
+        style={{ marginTop: 12, minHeight: 520 }}
+        rows={28}
+        value={draft}
+        readOnly
+      />
 
-      <Button
-        variant="primary"
-        className="mt-4"
-        onClick={() => navigator.clipboard.writeText(draft)}
-      >
-        複製AA01草稿
-      </Button>
+      <div className="form-actions">
+        <Button
+          variant="primary"
+          onClick={() => navigator.clipboard.writeText(draft)}
+        >
+          複製AA01草稿
+        </Button>
+      </div>
     </StepSection>
   );
 }

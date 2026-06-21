@@ -60,7 +60,7 @@ export function Step4Services({
 
   return (
     <StepSection title="四、服務規劃">
-      <div className="space-y-6">
+      <div className="field-list">
         {services.map((service, index) => {
           const groups =
             service.serviceKind === "一般服務"
@@ -80,13 +80,14 @@ export function Step4Services({
               : rawItems;
 
           return (
-            <div key={service.id} className="rounded-lg border p-4">
-              <h3 className="mb-3 font-bold">服務項目 {index + 1}</h3>
+            <div key={service.id} className="field-group">
+              <h3 className="field-group__title">服務項目 {index + 1}</h3>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <label>
-                  服務類型
+              <div className="form-grid">
+                <label className="form-field">
+                  <span className="form-label">服務類型</span>
                   <select
+                    className="form-select"
                     value={service.serviceKind}
                     onChange={(e) =>
                       updateOne(service.id, {
@@ -104,9 +105,10 @@ export function Step4Services({
                 </label>
 
                 {service.serviceKind === "輔具/無障礙" && (
-                  <label>
-                    使用方式
+                  <label className="form-field">
+                    <span className="form-label">使用方式</span>
                     <select
+                      className="form-select"
                       value={service.equipmentUseType || "購置"}
                       onChange={(e) =>
                         updateOne(service.id, {
@@ -124,9 +126,10 @@ export function Step4Services({
                   </label>
                 )}
 
-                <label>
-                  服務大類
+                <label className="form-field">
+                  <span className="form-label">服務大類</span>
                   <select
+                    className="form-select"
                     value={group}
                     onChange={(e) =>
                       updateOne(service.id, {
@@ -145,9 +148,10 @@ export function Step4Services({
                   </select>
                 </label>
 
-                <label>
-                  服務碼別
+                <label className="form-field">
+                  <span className="form-label">服務碼別</span>
                   <select
+                    className="form-select"
                     value={service.code}
                     onChange={(e) => updateOne(service.id, { code: e.target.value })}
                   >
@@ -161,36 +165,40 @@ export function Step4Services({
                   </select>
                 </label>
 
-                <label>
-                  數量
+                <label className="form-field">
+                  <span className="form-label">數量</span>
                   <input
+                    className="form-input"
                     value={service.quantity}
                     onChange={(e) => updateOne(service.id, { quantity: e.target.value })}
                     placeholder="例如：40"
                   />
                 </label>
 
-                <label>
-                  頻率/補充
+                <label className="form-field">
+                  <span className="form-label">頻率/補充</span>
                   <input
+                    className="form-input"
                     value={service.frequency}
                     onChange={(e) => updateOne(service.id, { frequency: e.target.value })}
                     placeholder="例如：每週2次，每次4組"
                   />
                 </label>
 
-                <label>
-                  服務單位
+                <label className="form-field">
+                  <span className="form-label">服務單位</span>
                   <input
+                    className="form-input"
                     value={service.providerName}
                     onChange={(e) => updateOne(service.id, { providerName: e.target.value })}
                     placeholder="例如：宜蘭縣私立..."
                   />
                 </label>
 
-                <label>
-                  單位狀態
+                <label className="form-field">
+                  <span className="form-label">單位狀態</span>
                   <select
+                    className="form-select"
                     value={service.providerStatus}
                     onChange={(e) =>
                       updateOne(service.id, {
@@ -207,7 +215,7 @@ export function Step4Services({
                 </label>
               </div>
 
-              <div className="mt-3 text-sm text-slate-600">
+              <div className="field-meta">
                 已選：{service.code || "未選擇"} {service.name}
                 {service.unit ? `｜單位：${service.unit}` : ""}
                 {service.purchaseType ? `｜${service.purchaseType}` : ""}
@@ -217,7 +225,7 @@ export function Step4Services({
         })}
       </div>
 
-      <div className="mt-4 flex gap-3">
+      <div className="form-actions">
         <Button
           variant="primary"
           onClick={() => updateServices([...services, createEmptyService()])}

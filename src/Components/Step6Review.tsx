@@ -8,13 +8,11 @@ export function Step6Review({ form }: { form: AA01Form }) {
   return (
     <StepSection title="六、檢核提醒">
       {warnings.length === 0 ? (
-        <div className="rounded-lg bg-green-50 p-4 text-green-800">
-          目前未偵測到明顯缺漏。
-        </div>
+        <div className="notice notice--success">目前未偵測到明顯缺漏。</div>
       ) : (
-        <div className="space-y-3">
+        <div className="notice-list">
           {warnings.map((warning) => (
-            <div key={warning} className="rounded-lg bg-amber-50 p-4 text-amber-900">
+            <div key={warning} className="notice notice--warning">
               {warning}
             </div>
           ))}

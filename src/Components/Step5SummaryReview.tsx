@@ -30,24 +30,22 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
 
   return (
     <StepSection title="評估摘要確認">
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="form-grid">
         {sections.map(([title, values]) => (
-          <article key={title} className="rounded-lg border p-4">
-            <h2 className="text-lg font-bold">{title}</h2>
+          <article key={title} className="field-group">
+            <h3 className="field-group__title">{title}</h3>
             {values.length ? (
-              <p className="mt-2 whitespace-pre-wrap text-slate-700">
-                {values.join("；")}
-              </p>
+              <p style={{ whiteSpace: "pre-wrap" }}>{values.join("；")}</p>
             ) : (
               <EmptyState />
             )}
           </article>
         ))}
 
-        <article className="rounded-lg border p-4 md:col-span-2">
-          <h2 className="text-lg font-bold">評估分數</h2>
+        <article className="field-group form-row">
+          <h3 className="field-group__title">評估分數</h3>
           {numericAnswers.length ? (
-            <ul className="mt-2 space-y-1 text-slate-700">
+            <ul style={{ margin: 0, paddingLeft: 20 }}>
               {numericAnswers.map(([questionId, value]) => (
                 <li key={questionId}>
                   {questionId}：{value}
@@ -59,20 +57,20 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
           )}
         </article>
 
-        <article className="rounded-lg border p-4 md:col-span-2">
-          <h2 className="text-lg font-bold">系統問題提示</h2>
-          <p className="mt-2 text-sm text-slate-600">
+        <article className="field-group form-row">
+          <h3 className="field-group__title">系統問題提示</h3>
+          <p className="form-help">
             以下為系統依評估結果產生之提示，仍需由個管依個案實際情況判斷。
           </p>
           {careProblems.length ? (
-            <ul className="mt-3 space-y-3 text-slate-700">
+            <ul className="notice-list">
               {careProblems.map((problem) => (
-                <li key={problem.id} className="rounded-lg border p-3">
-                  <strong>{problem.title}</strong>
-                  <p className="mt-1">{problem.description}</p>
-                  <small className="mt-1 block text-slate-500">
+                <li key={problem.id} className="field-group">
+                  <p className="field-group__title">{problem.title}</p>
+                  <p>{problem.description}</p>
+                  <p className="form-help">
                     來源題目：{problem.sourceQuestionIds.join("、")}
-                  </small>
+                  </p>
                 </li>
               ))}
             </ul>
@@ -81,21 +79,24 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
           )}
         </article>
 
-        <article className="rounded-lg border p-4 md:col-span-2">
-          <h2 className="text-lg font-bold">服務需求提示</h2>
-          <p className="mt-2 text-sm text-slate-600">
+        <article className="field-group form-row">
+          <h3 className="field-group__title">服務需求提示</h3>
+          <p className="form-help">
             僅供個管評估參考，不代表自動勾選或核定服務。
           </p>
           {serviceSuggestions.length ? (
-            <ul className="mt-3 space-y-3 text-slate-700">
+            <ul className="notice-list">
               {serviceSuggestions.map((suggestion) => (
-                <li key={suggestion.id} className="rounded-lg border p-3">
-                  <strong>
+                <li key={suggestion.id} className="field-group">
+                  <p className="field-group__title">
                     {suggestion.serviceCode} {suggestion.serviceName}
-                  </strong>
-                  <p className="mt-1">{suggestion.reason}</p>
+                  </p>
+                  <p>{suggestion.reason}</p>
                   {suggestion.caution && (
-                    <p className="mt-1 text-amber-700">注意：{suggestion.caution}</p>
+                    <p>
+                      <span className="badge badge-warning">注意</span>{" "}
+                      {suggestion.caution}
+                    </p>
                   )}
                 </li>
               ))}

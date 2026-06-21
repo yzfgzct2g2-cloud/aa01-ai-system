@@ -13,10 +13,11 @@ export function Step1Basic({
 
   return (
     <StepSection title="一、基本資料">
-      <div className="grid gap-4 md:grid-cols-2">
-        <label>
-          案件類型
+      <div className="form-grid">
+        <label className="form-field">
+          <span className="form-label">案件類型</span>
           <select
+            className="form-select"
             value={form.caseType || ""}
             onChange={(e) => update("caseType", e.target.value as CaseType)}
           >
@@ -27,24 +28,40 @@ export function Step1Basic({
           </select>
         </label>
 
-        <label>
-          個案姓名
-          <input value={form.caseName || ""} onChange={(e) => update("caseName", e.target.value)} />
+        <label className="form-field">
+          <span className="form-label">個案姓名</span>
+          <input
+            className="form-input"
+            value={form.caseName || ""}
+            onChange={(e) => update("caseName", e.target.value)}
+          />
         </label>
 
-        <label>
-          評估日期
-          <input value={form.assessmentDate || ""} onChange={(e) => update("assessmentDate", e.target.value)} />
+        <label className="form-field">
+          <span className="form-label">評估日期</span>
+          <input
+            className="form-input"
+            value={form.assessmentDate || ""}
+            onChange={(e) => update("assessmentDate", e.target.value)}
+          />
         </label>
 
-        <label>
-          CMS等級
-          <input value={form.cmsLevel || ""} onChange={(e) => update("cmsLevel", e.target.value)} />
+        <label className="form-field">
+          <span className="form-label">CMS等級</span>
+          <input
+            className="form-input"
+            value={form.cmsLevel || ""}
+            onChange={(e) => update("cmsLevel", e.target.value)}
+          />
         </label>
 
-        <label>
-          身分別
-          <input value={form.identityType || ""} onChange={(e) => update("identityType", e.target.value)} />
+        <label className="form-field">
+          <span className="form-label">身分別</span>
+          <input
+            className="form-input"
+            value={form.identityType || ""}
+            onChange={(e) => update("identityType", e.target.value)}
+          />
         </label>
       </div>
     </StepSection>
