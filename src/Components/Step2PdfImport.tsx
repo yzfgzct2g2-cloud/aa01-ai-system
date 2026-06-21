@@ -5,12 +5,19 @@ import { EmptyState } from "./common/EmptyState";
 import { Button } from "./common/Button";
 import { parseAssessmentText } from "../rules/pdfAssessmentParser";
 import type { PdfParseResult } from "../rules/pdfAssessmentParser";
+import { applyParsedAssessment, hasAnswerValue } from "../rules/applyParsedAssessment";
 
 const confidenceBadge: Record<string, { label: string; className: string }> = {
   high: { label: "高", className: "badge badge-success" },
   medium: { label: "中", className: "badge badge-muted" },
   low: { label: "低", className: "badge badge-warning" },
 };
+
+interface ApplySummary {
+  applied: number;
+  skipped: number;
+  conflicts: number;
+}
 
 function formatCode(detectedCode: string | string[] | number | "") {
   if (Array.isArray(detectedCode)) return detectedCode.join("、");
@@ -25,6 +32,56 @@ export function Step2PdfImport({
   setForm: (form: AA01Form) => void;
 }) {
   const [result, setResult] = useState<PdfParseResult | null>(null);
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [applySummary, setApplySummary] = useState<ApplySummary | null>(null);
+
+  const existingAnswers = form.assessmentAnswers ?? {};
+  const hasExisting = (questionId: string) =>
+    hasAnswerValue(existingAnswers[questionId]);
+
+  const handleParse = () => {
+    const parsed = parseAssessmentText(form.ocrText || "");
+    const autoChecked = new Set(
+      parsed.parsedAnswers
+        .filter(
+          (answer) =>
+            (answer.confidence === "high" || answer.confidence === "medium") &&
+            !answer.warning &&
+            !hasExisting(answer.questionId)
+        )
+        .map((answer) => answer.questionId)
+    );
+    setResult(parsed);
+    setCheckedIds(autoChecked);
+    setApplySummary(null);
+  };
+
+  const toggle = (questionId: string) => {
+    setCheckedIds((current) => {
+      const next = new Set(current);
+      if (next.has(questionId)) next.delete(questionId);
+      else next.add(questionId);
+      return next;
+    });
+  };
+
+  const handleApply = () => {
+    if (!result) return;
+    const selected = result.parsedAnswers.filter((answer) =>
+      checkedIds.has(answer.questionId)
+    );
+    const applied = applyParsedAssessment(existingAnswers, selected);
+    setForm({ ...form, assessmentAnswers: applied.assessmentAnswers });
+    setApplySummary({
+      applied: applied.applied.length,
+      skipped: applied.skipped.length,
+      conflicts: applied.conflicts.length,
+    });
+  };
+
+  const checkedCount = result
+    ? result.parsedAnswers.filter((answer) => checkedIds.has(answer.questionId)).length
+    : 0;
 
   return (
     <StepSection title="二、PDF匯入">
@@ -80,11 +137,7 @@ export function Step2PdfImport({
             onChange={(e) => setForm({ ...form, ocrText: e.target.value })}
           />
           <div className="form-actions">
-            <Button
-              variant="primary"
-              disabled={!form.ocrText?.trim()}
-              onClick={() => setResult(parseAssessmentText(form.ocrText || ""))}
-            >
+            <Button variant="primary" disabled={!form.ocrText?.trim()} onClick={handleParse}>
               解析評估表文字
             </Button>
           </div>
@@ -92,9 +145,10 @@ export function Step2PdfImport({
 
         {result && (
           <div className="field-group">
-            <p className="field-group__title">解析結果（僅供參考，不會自動套用）</p>
+            <p className="field-group__title">解析結果確認（勾選後才會套用）</p>
             <p className="form-help">
-              系統僅依文字中明確出現的題號與勾選結果解析，需個管確認後才於後續階段填入評估表。
+              系統僅依文字中明確出現的題號與勾選結果解析。預設勾選信心高/中且無衝突的項目，
+              已有人工答案者不會被覆蓋。請確認後再套用至評估表。
             </p>
 
             <p>
@@ -109,12 +163,22 @@ export function Step2PdfImport({
               <ul className="notice-list">
                 {result.parsedAnswers.map((answer) => {
                   const badge = confidenceBadge[answer.confidence];
+                  const conflict = hasExisting(answer.questionId);
                   return (
                     <li key={answer.questionId} className="field-group">
-                      <p>
+                      <label className="inline-field">
+                        <input
+                          type="checkbox"
+                          checked={checkedIds.has(answer.questionId)}
+                          disabled={conflict}
+                          onChange={() => toggle(answer.questionId)}
+                        />
                         <strong>{answer.questionId}</strong>：{formatCode(answer.detectedCode)}{" "}
                         <span className={badge.className}>信心 {badge.label}</span>
-                      </p>
+                        {conflict && (
+                          <span className="badge badge-warning">已有答案，將略過</span>
+                        )}
+                      </label>
                       {answer.warning && (
                         <p>
                           <span className="badge badge-warning">注意</span> {answer.warning}
@@ -127,6 +191,27 @@ export function Step2PdfImport({
               </ul>
             ) : (
               <EmptyState message="尚未辨識到任何題目" />
+            )}
+
+            <div className="form-actions">
+              <Button
+                variant="primary"
+                disabled={checkedCount === 0}
+                onClick={handleApply}
+              >
+                套用至評估表（已勾選 {checkedCount} 筆）
+              </Button>
+            </div>
+
+            {applySummary && (
+              <p>
+                已套用：
+                <span className="badge badge-success">{applySummary.applied}</span>
+                {" ／ "}
+                跳過：<span className="badge badge-muted">{applySummary.skipped}</span>
+                {" ／ "}
+                衝突：<span className="badge badge-warning">{applySummary.conflicts}</span>
+              </p>
             )}
 
             <p className="field-group__title">待人工確認項目</p>
