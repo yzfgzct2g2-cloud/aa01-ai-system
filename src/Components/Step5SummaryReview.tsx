@@ -2,6 +2,8 @@ import { buildAssessmentSummary } from "../rules/assessmentSummary";
 import { buildCareProblems } from "../rules/problemMatrix";
 import { buildServiceSuggestions } from "../rules/serviceSuggestion";
 import type { AA01Form } from "../types";
+import { StepSection } from "./common/StepSection";
+import { EmptyState } from "./common/EmptyState";
 
 interface Step5SummaryReviewProps {
   form: AA01Form;
@@ -27,16 +29,18 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
   const numericAnswers = Object.entries(summary.numericAnswers);
 
   return (
-    <section className="space-y-6 rounded-xl bg-white p-6 shadow">
-      <h1 className="text-2xl font-bold">評估摘要確認</h1>
-
+    <StepSection title="評估摘要確認">
       <div className="grid gap-4 md:grid-cols-2">
         {sections.map(([title, values]) => (
           <article key={title} className="rounded-lg border p-4">
             <h2 className="text-lg font-bold">{title}</h2>
-            <p className="mt-2 whitespace-pre-wrap text-slate-700">
-              {values.length ? values.join("；") : "無資料"}
-            </p>
+            {values.length ? (
+              <p className="mt-2 whitespace-pre-wrap text-slate-700">
+                {values.join("；")}
+              </p>
+            ) : (
+              <EmptyState />
+            )}
           </article>
         ))}
 
@@ -51,7 +55,7 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-slate-700">無資料</p>
+            <EmptyState />
           )}
         </article>
 
@@ -73,7 +77,7 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-slate-700">無系統提示</p>
+            <EmptyState message="無系統提示" />
           )}
         </article>
 
@@ -97,10 +101,10 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-slate-700">無系統提示</p>
+            <EmptyState message="無系統提示" />
           )}
         </article>
       </div>
-    </section>
+    </StepSection>
   );
 }

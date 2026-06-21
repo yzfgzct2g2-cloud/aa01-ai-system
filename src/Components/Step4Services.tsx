@@ -6,6 +6,8 @@ import {
   filterEquipmentItems,
   type ServiceGroupKey,
 } from "../data/serviceCatalog";
+import { StepSection } from "./common/StepSection";
+import { Button } from "./common/Button";
 
 function createEmptyService(): PlannedService {
   return {
@@ -57,9 +59,7 @@ export function Step4Services({
   };
 
   return (
-    <section className="rounded-xl bg-white p-6 shadow">
-      <h2 className="mb-4 text-xl font-bold">四、服務規劃</h2>
-
+    <StepSection title="四、服務規劃">
       <div className="space-y-6">
         {services.map((service, index) => {
           const groups =
@@ -218,17 +218,20 @@ export function Step4Services({
       </div>
 
       <div className="mt-4 flex gap-3">
-        <button onClick={() => updateServices([...services, createEmptyService()])}>
+        <Button
+          variant="primary"
+          onClick={() => updateServices([...services, createEmptyService()])}
+        >
           ＋新增服務
-        </button>
+        </Button>
 
-        <button
+        <Button
           disabled={services.length <= 1}
           onClick={() => updateServices(services.slice(0, -1))}
         >
           －移除最後一筆
-        </button>
+        </Button>
       </div>
-    </section>
+    </StepSection>
   );
 }

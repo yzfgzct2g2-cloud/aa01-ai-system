@@ -1,0 +1,71 @@
+/* Shared UI primitives. Design tokens follow Step3Assessment.css so every
+   step page renders with the same card / title / button / empty-state look. */
+
+.step-section {
+  text-align: left;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 16px 0;
+  padding: 20px 24px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+}
+
+.step-section__title {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.ui-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-btn--primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.ui-btn--primary:not(:disabled):hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.ui-btn--secondary {
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.ui-btn--secondary:not(:disabled):hover {
+  background: #f8fafc;
+}
+
+.ui-empty {
+  margin-top: 8px;
+  padding: 12px 14px;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+}

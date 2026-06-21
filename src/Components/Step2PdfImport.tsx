@@ -1,4 +1,5 @@
 import type { AA01Form } from "../types";
+import { StepSection } from "./common/StepSection";
 
 export function Step2PdfImport({
   form,
@@ -8,9 +9,7 @@ export function Step2PdfImport({
   setForm: (form: AA01Form) => void;
 }) {
   return (
-    <section className="rounded-xl bg-white p-6 shadow">
-      <h2 className="mb-4 text-xl font-bold">二、PDF匯入</h2>
-
+    <StepSection title="二、PDF匯入">
       <input
         type="file"
         accept="application/pdf"
@@ -50,6 +49,6 @@ export function Step2PdfImport({
         value={form.ocrText || ""}
         onChange={(e) => setForm({ ...form, ocrText: e.target.value })}
       />
-    </section>
+    </StepSection>
   );
 }

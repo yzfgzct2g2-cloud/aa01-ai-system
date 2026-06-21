@@ -1,13 +1,12 @@
 import type { AA01Form } from "../types";
 import { buildServiceValidationWarnings } from "../rules/serviceValidation";
+import { StepSection } from "./common/StepSection";
 
 export function Step6Review({ form }: { form: AA01Form }) {
   const warnings = buildServiceValidationWarnings(form);
 
   return (
-    <section className="rounded-xl bg-white p-6 shadow">
-      <h2 className="mb-4 text-xl font-bold">六、檢核提醒</h2>
-
+    <StepSection title="六、檢核提醒">
       {warnings.length === 0 ? (
         <div className="rounded-lg bg-green-50 p-4 text-green-800">
           目前未偵測到明顯缺漏。
@@ -21,6 +20,6 @@ export function Step6Review({ form }: { form: AA01Form }) {
           ))}
         </div>
       )}
-    </section>
+    </StepSection>
   );
 }

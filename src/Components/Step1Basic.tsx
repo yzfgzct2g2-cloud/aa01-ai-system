@@ -1,4 +1,5 @@
 import type { AA01Form, CaseType } from "../types";
+import { StepSection } from "./common/StepSection";
 
 export function Step1Basic({
   form,
@@ -11,9 +12,7 @@ export function Step1Basic({
     setForm({ ...form, [key]: value });
 
   return (
-    <section className="rounded-xl bg-white p-6 shadow">
-      <h2 className="mb-4 text-xl font-bold">一、基本資料</h2>
-
+    <StepSection title="一、基本資料">
       <div className="grid gap-4 md:grid-cols-2">
         <label>
           案件類型
@@ -48,6 +47,6 @@ export function Step1Basic({
           <input value={form.identityType || ""} onChange={(e) => update("identityType", e.target.value)} />
         </label>
       </div>
-    </section>
+    </StepSection>
   );
 }
