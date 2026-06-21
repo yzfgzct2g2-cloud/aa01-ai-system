@@ -11,13 +11,13 @@ import { Step6Review } from "./Components/Step6Review";
 import type { AA01Form, AssessmentAnswer } from "./types";
 
 const steps = [
-  "基本資料",
+  "個案資料",
   "PDF匯入",
-  "評估表",
+  "評估確認",
   "服務規劃",
   "摘要確認",
-  "檢核提醒",
-  "AA01輸出",
+  "計畫檢核",
+  "AA01產出",
 ];
 
 export default function App() {

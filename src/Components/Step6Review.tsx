@@ -6,7 +6,7 @@ export function Step6Review({ form }: { form: AA01Form }) {
   const warnings = buildServiceValidationWarnings(form);
 
   return (
-    <StepSection title="六、檢核提醒">
+    <StepSection title="六、計畫檢核">
       {warnings.length === 0 ? (
         <div className="notice notice--success">目前未偵測到明顯缺漏。</div>
       ) : (

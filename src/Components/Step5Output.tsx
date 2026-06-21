@@ -7,7 +7,7 @@ export function Step5Output({ form }: { form: AA01Form }) {
   const draft = buildAA01Draft(form);
 
   return (
-    <StepSection title="五、AA01輸出">
+    <StepSection title="七、AA01產出">
       <p className="form-help">系統產生之 AA01 草稿，請個管確認後再使用。</p>
       <textarea
         className="form-textarea"

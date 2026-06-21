@@ -14,6 +14,7 @@ import {
 } from "./Step3Assessment.logic";
 import type { SectionKey } from "./Step3Assessment.logic";
 import "./Step3Assessment.css";
+import "./common/common.css";
 
 interface Step3AssessmentProps {
   assessmentAnswers: Record<string, AssessmentAnswer>;
@@ -244,7 +245,9 @@ export function Step3Assessment({
   };
 
   return (
-    <div className="assessment-layout">
+    <>
+      <h2 className="page-title">三、評估確認</h2>
+      <div className="assessment-layout">
       <aside className="assessment-sidebar" aria-label="評估分區導覽">
         <div className="assessment-progress-card">
           <div className="assessment-progress-card__row">
@@ -355,6 +358,7 @@ export function Step3Assessment({
           );
         })}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

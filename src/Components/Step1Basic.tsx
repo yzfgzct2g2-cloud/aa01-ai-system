@@ -12,7 +12,7 @@ export function Step1Basic({
     setForm({ ...form, [key]: value });
 
   return (
-    <StepSection title="一、基本資料">
+    <StepSection title="一、個案資料">
       <div className="form-grid">
         <label className="form-field">
           <span className="form-label">案件類型</span>

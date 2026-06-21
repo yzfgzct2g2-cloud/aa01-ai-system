@@ -29,7 +29,7 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
   const numericAnswers = Object.entries(summary.numericAnswers);
 
   return (
-    <StepSection title="評估摘要確認">
+    <StepSection title="五、摘要確認">
       <div className="form-grid">
         {sections.map(([title, values]) => (
           <article key={title} className="field-group">

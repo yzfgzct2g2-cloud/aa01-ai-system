@@ -252,6 +252,93 @@
   cursor: pointer;
 }
 
+/* ---- Page titles --------------------------------------------------- */
+
+.page-title {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+
+.page-subtitle {
+  margin: -8px 0 16px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* ---- Stepper ------------------------------------------------------- */
+
+.stepper {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+  padding-bottom: 4px;
+  overflow-x: auto;
+}
+
+.stepper-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 14px;
+  color: #64748b;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.stepper-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stepper-label {
+  font-weight: 600;
+}
+
+.stepper-item--active {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
+.stepper-item--active .stepper-index {
+  background: #2563eb;
+  color: #fff;
+}
+
+.stepper-item--done {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.stepper-item--done .stepper-index {
+  background: #22c55e;
+  color: #fff;
+}
+
+.stepper-item--pending:hover {
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
 /* ---- Mobile -------------------------------------------------------- */
 
 @media (max-width: 640px) {
