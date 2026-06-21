@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.5.2
+
+日期：2026-06-21
+
+新增：
+
+* 由官方「修正長期照顧服務申請及給付辦法 附表四」擷取完整服務碼，補齊 serviceCatalog（B/D/E/F/G 共 143 筆，另保留 C/SC/OT），總計 147 筆
+* serviceCatalog 新增 category 與 price（參考價）欄位
+* 服務碼擷取報告 knowledge/01-official/SERVICE_CATALOG_EXTRACTION_REPORT.md
+* 測試：目錄內每個服務碼都有對應服務目標模板（不得選得到卻找不到模板）
+
+修正：
+
+* serviceGoalLibrary 目錄 fallback 已涵蓋全部服務碼（GA09、CA07 等不再找不到模板）
+
 ## v1.5.1
 
 日期：2026-06-21
