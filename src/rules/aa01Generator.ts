@@ -2,6 +2,9 @@ import type { AA01Form, PlannedService } from "../types";
 import { buildAssessmentSummary } from "./assessmentSummary.ts";
 import { buildCareProblems } from "./problemMatrix.ts";
 import { buildServiceSuggestions } from "./serviceSuggestion.ts";
+import { buildServiceGoals, getServiceGoalTemplate } from "./serviceGoalLibrary.ts";
+import { APP_VERSION } from "../config/version.ts";
+import { getBuildInfo } from "../utils/buildInfo.ts";
 
 function nlJoin(items: string[]) {
   return items.join("\n");
@@ -208,7 +211,13 @@ export function buildAA01Draft(form: AA01Form) {
 
   const services = form.services || [];
   const problems = generateProblemAnalysis(form);
-  const goals = generateGoalSuggestions(form);
+  const serviceGoals = buildServiceGoals(services.map((s) => s.code));
+  const buildInfo = getBuildInfo();
+  const formatGoals = (items: string[]) => (items.length ? items.join("；") : "待補充");
+  const approvalSuffix = (code: string) => {
+    const template = getServiceGoalTemplate(code);
+    return template ? `核定內容：${template.approvalText}` : "";
+  };
 
   const legacyCommunicationSummary = [
     form.consciousness ? `意識${form.consciousness}` : "",
@@ -313,6 +322,11 @@ export function buildAA01Draft(form: AA01Form) {
   ];
 
   const lines = [
+    "AA01 AI照顧計畫系統",
+    `系統版本：v${APP_VERSION}`,
+    `產生日期：${buildInfo.date}`,
+    `產生時間：${buildInfo.time}`,
+    "",
     "一、\t個案現況評估",
     "(一)\t身心概況及照顧情形：",
     `1.\t身心功能與溝通狀況：${physicalCommunicationText}`,
@@ -334,9 +348,9 @@ export function buildAA01Draft(form: AA01Form) {
     `(四)\t輔具服務及居家無障礙環境改善：${problems.environment.join("；") || "無。"}`,
 
     "三、\t計畫執行規劃：",
-    `(一)\t短期目標(${rocYear}${fmtMonth(startMonth)}-${rocYear}${fmtMonth(startMonth + 1)})：${goals.short.join("；")}`,
-    `(二)\t中期目標(${rocYear}${fmtMonth(startMonth + 2)}-${rocYear}${fmtMonth(startMonth + 3)})：${goals.mid.join("；")}`,
-    `(三)\t長期目標(${rocYear}${fmtMonth(startMonth + 4)}-${rocYear}${fmtMonth(startMonth + 5)})：${goals.long.join("；")}`,
+    `(一)\t短期目標(${rocYear}${fmtMonth(startMonth)}-${rocYear}${fmtMonth(startMonth + 1)})：${formatGoals(serviceGoals.shortTermGoals)}`,
+    `(二)\t中期目標(${rocYear}${fmtMonth(startMonth + 2)}-${rocYear}${fmtMonth(startMonth + 3)})：${formatGoals(serviceGoals.midTermGoals)}`,
+    `(三)\t長期目標(${rocYear}${fmtMonth(startMonth + 4)}-${rocYear}${fmtMonth(startMonth + 5)})：${formatGoals(serviceGoals.longTermGoals)}`,
 
     ...systemHintLines,
 
@@ -345,26 +359,32 @@ export function buildAA01Draft(form: AA01Form) {
 
   if (careServices.length) {
     lines.push("(一)\t照顧及專業服務(給付額度：24,100元/月)：");
-    careServices.forEach((s, i) => lines.push(`${i + 1}.\t${s.code}[${s.name}]*${s.quantity || "__"}${s.unit}${s.frequency ? `，${s.frequency}` : ""}。`));
+    careServices.forEach((s, i) => lines.push(`${i + 1}.\t${s.code}[${s.name}]*${s.quantity || "__"}${s.unit}${s.frequency ? `，${s.frequency}` : ""}。${approvalSuffix(s.code)}`));
     lines.push(`${careServices.length + 1}.\t服務單位：${groupProviderText(careServices)}。`);
   }
 
   if (transportServices.length) {
     lines.push("(二)\t交通接送(給付額度：1840元/月)：");
-    transportServices.forEach((s, i) => lines.push(`${i + 1}.\t${s.code}[${s.name}]*${s.quantity || "__"}${s.unit}。`));
+    transportServices.forEach((s, i) => lines.push(`${i + 1}.\t${s.code}[${s.name}]*${s.quantity || "__"}${s.unit}。${approvalSuffix(s.code)}`));
     lines.push(`${transportServices.length + 1}.\t服務單位：${groupProviderText(transportServices)}。`);
   }
 
   if (respiteServices.length) {
     lines.push("(三)\t喘息服務(剩餘額度：待確認元/年，額度區間：待確認)：");
-    respiteServices.forEach((s, i) => lines.push(`${i + 1}.\t${s.name}:${s.code}*${s.quantity || "__"}${s.unit}。`));
+    respiteServices.forEach((s, i) => lines.push(`${i + 1}.\t${s.name}:${s.code}*${s.quantity || "__"}${s.unit}。${approvalSuffix(s.code)}`));
     lines.push(`${respiteServices.length + 1}.\t服務單位：${groupProviderText(respiteServices)}。`);
   }
 
   if (equipmentServices.length) {
     lines.push("(四)\t輔具服務(剩餘額度：40000元/3年)：");
-    equipmentServices.forEach((s, i) => lines.push(`${i + 1}.\t${s.code}[${s.name}]*${s.quantity || "__"}${s.unit}。`));
+    equipmentServices.forEach((s, i) => lines.push(`${i + 1}.\t${s.code}[${s.name}]*${s.quantity || "__"}${s.unit}。${approvalSuffix(s.code)}`));
     lines.push(`${equipmentServices.length + 1}.\t服務單位：${groupProviderText(equipmentServices)}。實際核定內容依輔具核定函結果為主。`);
+  }
+
+  if (serviceGoals.missingCodes.length) {
+    lines.push(
+      `（系統提醒）下列服務碼尚未建立目標模板，待補充：${serviceGoals.missingCodes.join("、")}。`
+    );
   }
 
   lines.push(

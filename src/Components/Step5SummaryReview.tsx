@@ -1,6 +1,7 @@
 import { buildAssessmentSummary } from "../rules/assessmentSummary";
 import { buildCareProblems } from "../rules/problemMatrix";
 import { buildServiceSuggestions } from "../rules/serviceSuggestion";
+import { buildServiceGoals } from "../rules/serviceGoalLibrary";
 import type { AA01Form } from "../types";
 import { StepSection } from "./common/StepSection";
 import { EmptyState } from "./common/EmptyState";
@@ -15,6 +16,8 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
   );
   const careProblems = buildCareProblems(form.assessmentAnswers ?? {});
   const serviceSuggestions = buildServiceSuggestions(careProblems);
+  const services = form.services ?? [];
+  const serviceGoals = buildServiceGoals(services.map((s) => s.code));
 
   const sections = [
     ["溝通能力", summary.communicationSummary],
@@ -103,6 +106,62 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
             </ul>
           ) : (
             <EmptyState message="無系統提示" />
+          )}
+        </article>
+
+        <article className="field-group form-row">
+          <h3 className="field-group__title">服務目標提示</h3>
+          <p className="form-help">
+            依目前已選服務，從服務目標庫產生之短/中/長期目標，僅供個管確認。
+          </p>
+          {services.length ? (
+            <>
+              <p className="field-group__title">短期目標</p>
+              {serviceGoals.shortTermGoals.length ? (
+                <ul className="notice-list">
+                  {serviceGoals.shortTermGoals.map((goal) => (
+                    <li key={goal} className="notice notice--success">{goal}</li>
+                  ))}
+                </ul>
+              ) : (
+                <EmptyState message="待補充" />
+              )}
+
+              <p className="field-group__title">中期目標</p>
+              {serviceGoals.midTermGoals.length ? (
+                <ul className="notice-list">
+                  {serviceGoals.midTermGoals.map((goal) => (
+                    <li key={goal} className="notice notice--success">{goal}</li>
+                  ))}
+                </ul>
+              ) : (
+                <EmptyState message="待補充" />
+              )}
+
+              <p className="field-group__title">長期目標</p>
+              {serviceGoals.longTermGoals.length ? (
+                <ul className="notice-list">
+                  {serviceGoals.longTermGoals.map((goal) => (
+                    <li key={goal} className="notice notice--success">{goal}</li>
+                  ))}
+                </ul>
+              ) : (
+                <EmptyState message="待補充" />
+              )}
+
+              {serviceGoals.missingCodes.length > 0 && (
+                <>
+                  <p className="field-group__title">尚未建立目標模板的服務碼</p>
+                  <ul className="notice-list">
+                    {serviceGoals.missingCodes.map((code) => (
+                      <li key={code} className="notice notice--warning">{code}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </>
+          ) : (
+            <EmptyState message="尚未選擇服務" />
           )}
         </article>
       </div>

@@ -1,13 +1,24 @@
 import type { AA01Form } from "../types";
 import { buildAA01Draft } from "../rules/aa01Generator";
+import { getBuildInfo } from "../utils/buildInfo";
 import { StepSection } from "./common/StepSection";
 import { Button } from "./common/Button";
 
 export function Step5Output({ form }: { form: AA01Form }) {
   const draft = buildAA01Draft(form);
+  const buildInfo = getBuildInfo();
 
   return (
     <StepSection title="七、AA01產出">
+      <div className="field-group">
+        <p className="field-group__title">AA01 AI照顧計畫系統</p>
+        <p>版本：v{buildInfo.version}</p>
+        <p>
+          產生日期：{buildInfo.date}
+          {" ／ "}
+          產生時間：{buildInfo.time}
+        </p>
+      </div>
       <p className="form-help">系統產生之 AA01 草稿，請個管確認後再使用。</p>
       <textarea
         className="form-textarea"
