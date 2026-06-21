@@ -1,5 +1,7 @@
 import type { AA01Form, PlannedService } from "../types";
-import { buildAssessmentSummary } from "./assessmentSummary";
+import { buildAssessmentSummary } from "./assessmentSummary.ts";
+import { buildCareProblems } from "./problemMatrix.ts";
+import { buildServiceSuggestions } from "./serviceSuggestion.ts";
 
 function nlJoin(items: string[]) {
   return items.join("\n");
@@ -201,6 +203,8 @@ export function buildAA01Draft(form: AA01Form) {
   const assessmentSummary = buildAssessmentSummary(
     form.assessmentAnswers ?? {}
   );
+  const careProblems = buildCareProblems(form.assessmentAnswers ?? {});
+  const serviceSuggestions = buildServiceSuggestions(careProblems);
 
   const services = form.services || [];
   const problems = generateProblemAnalysis(form);
@@ -289,6 +293,25 @@ export function buildAA01Draft(form: AA01Form) {
   const respiteServices = services.filter((s) => s.code.startsWith("GA") || s.code.startsWith("SC"));
   const equipmentServices = services.filter((s) => s.code.startsWith("E") || s.code.startsWith("FA"));
 
+  const systemHintLines = [
+    "系統輔助提示（需個管確認）",
+    "以下為系統依評估結果產生之提示，仍需由個管依個案實際情況判斷，不代表自動核定服務。",
+    "（一）\t照顧問題提示：",
+    ...(careProblems.length
+      ? careProblems.map(
+          (problem, index) =>
+            `${index + 1}.\t${problem.title}：${problem.description}（來源題目：${problem.sourceQuestionIds.join("、")}）`
+        )
+      : ["無系統提示。"]),
+    "（二）\t服務需求提示：",
+    ...(serviceSuggestions.length
+      ? serviceSuggestions.map(
+          (suggestion, index) =>
+            `${index + 1}.\t${suggestion.serviceCode} ${suggestion.serviceName}：${suggestion.reason}${suggestion.caution ? ` 注意：${suggestion.caution}` : ""}`
+        )
+      : ["無系統提示。"]),
+  ];
+
   const lines = [
     "一、\t個案現況評估",
     "(一)\t身心概況及照顧情形：",
@@ -314,6 +337,8 @@ export function buildAA01Draft(form: AA01Form) {
     `(一)\t短期目標(${rocYear}${fmtMonth(startMonth)}-${rocYear}${fmtMonth(startMonth + 1)})：${goals.short.join("；")}`,
     `(二)\t中期目標(${rocYear}${fmtMonth(startMonth + 2)}-${rocYear}${fmtMonth(startMonth + 3)})：${goals.mid.join("；")}`,
     `(三)\t長期目標(${rocYear}${fmtMonth(startMonth + 4)}-${rocYear}${fmtMonth(startMonth + 5)})：${goals.long.join("；")}`,
+
+    ...systemHintLines,
 
     "四、\t經本次評估後，擬核定照顧服務內容如下：",
   ];

@@ -1,4 +1,6 @@
 import { buildAssessmentSummary } from "../rules/assessmentSummary";
+import { buildCareProblems } from "../rules/problemMatrix";
+import { buildServiceSuggestions } from "../rules/serviceSuggestion";
 import type { AA01Form } from "../types";
 
 interface Step5SummaryReviewProps {
@@ -9,6 +11,8 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
   const summary = buildAssessmentSummary(
     form.assessmentAnswers ?? {}
   );
+  const careProblems = buildCareProblems(form.assessmentAnswers ?? {});
+  const serviceSuggestions = buildServiceSuggestions(careProblems);
 
   const sections = [
     ["溝通能力", summary.communicationSummary],
@@ -48,6 +52,52 @@ export function Step5SummaryReview({ form }: Step5SummaryReviewProps) {
             </ul>
           ) : (
             <p className="mt-2 text-slate-700">無資料</p>
+          )}
+        </article>
+
+        <article className="rounded-lg border p-4 md:col-span-2">
+          <h2 className="text-lg font-bold">系統問題提示</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            以下為系統依評估結果產生之提示，仍需由個管依個案實際情況判斷。
+          </p>
+          {careProblems.length ? (
+            <ul className="mt-3 space-y-3 text-slate-700">
+              {careProblems.map((problem) => (
+                <li key={problem.id} className="rounded-lg border p-3">
+                  <strong>{problem.title}</strong>
+                  <p className="mt-1">{problem.description}</p>
+                  <small className="mt-1 block text-slate-500">
+                    來源題目：{problem.sourceQuestionIds.join("、")}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-slate-700">無系統提示</p>
+          )}
+        </article>
+
+        <article className="rounded-lg border p-4 md:col-span-2">
+          <h2 className="text-lg font-bold">服務需求提示</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            僅供個管評估參考，不代表自動勾選或核定服務。
+          </p>
+          {serviceSuggestions.length ? (
+            <ul className="mt-3 space-y-3 text-slate-700">
+              {serviceSuggestions.map((suggestion) => (
+                <li key={suggestion.id} className="rounded-lg border p-3">
+                  <strong>
+                    {suggestion.serviceCode} {suggestion.serviceName}
+                  </strong>
+                  <p className="mt-1">{suggestion.reason}</p>
+                  {suggestion.caution && (
+                    <p className="mt-1 text-amber-700">注意：{suggestion.caution}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-slate-700">無系統提示</p>
           )}
         </article>
       </div>
