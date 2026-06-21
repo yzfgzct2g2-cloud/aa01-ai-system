@@ -4,6 +4,7 @@ import { Stepper } from "./Components/Stepper";
 import { Step1Basic } from "./Components/Step1Basic";
 import { Step2PdfImport } from "./Components/Step2PdfImport";
 import { Step3Assessment } from "./Components/Step3Assessment";
+import { Step4CaseProfile } from "./Components/Step4CaseProfile";
 import { Step4Services } from "./Components/Step4Services";
 import { Step5SummaryReview } from "./Components/Step5SummaryReview";
 import { Step5Output } from "./Components/Step5Output";
@@ -14,6 +15,7 @@ const steps = [
   "個案資料",
   "PDF匯入",
   "評估確認",
+  "個案概況",
   "服務規劃",
   "摘要確認",
   "計畫檢核",
@@ -52,10 +54,11 @@ export default function App() {
             setAssessmentAnswers={setAssessmentAnswers}
           />
         )}
-        {step === 3 && <Step4Services form={form} setForm={setForm} />}
-        {step === 4 && <Step5SummaryReview form={form} />}
-        {step === 5 && <Step6Review form={form} />}
-        {step === 6 && <Step5Output form={form} />}
+        {step === 3 && <Step4CaseProfile form={form} setForm={setForm} />}
+        {step === 4 && <Step4Services form={form} setForm={setForm} />}
+        {step === 5 && <Step5SummaryReview form={form} />}
+        {step === 6 && <Step6Review form={form} />}
+        {step === 7 && <Step5Output form={form} />}
 
         <div className="flex justify-between">
           <button disabled={step === 0} onClick={() => setStep(step - 1)}>

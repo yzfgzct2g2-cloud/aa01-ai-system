@@ -1,3 +1,5 @@
+import { SERVICE_CATALOG } from "../data/serviceCatalog.ts";
+
 export interface ServiceGoalTemplate {
   serviceCode: string;
   serviceName: string;
@@ -239,21 +241,128 @@ const templateMap = new Map<string, ServiceGoalTemplate>(
   SERVICE_GOAL_TEMPLATES.map((template) => [template.serviceCode, template])
 );
 
+type Category = ServiceGoalTemplate["category"];
+
+/** Default goal text per category, so every catalogued service code resolves. */
+const CATEGORY_GOALS: Record<
+  Category,
+  (name: string) => Omit<ServiceGoalTemplate, "serviceCode" | "serviceName" | "category">
+> = {
+  "home-care": (n) => ({
+    approvalText: `協助個案${n}，以維持日常生活照顧及生活功能。`,
+    shortTermGoal: `透過${n}，維持個案日常生活照顧需求。`,
+    midTermGoal: `透過規律${n}，維持個案生活功能穩定。`,
+    longTermGoal: `藉由持續${n}，延緩功能退化並維持生活品質。`,
+  }),
+  "day-care": (n) => ({
+    approvalText: `提供個案${n}，以維持日間照顧及社會參與。`,
+    shortTermGoal: `透過${n}，維持個案日間生活照顧。`,
+    midTermGoal: `透過規律${n}，維持個案生活功能及社會互動。`,
+    longTermGoal: `藉由持續${n}，延緩功能退化並減輕家庭照顧負荷。`,
+  }),
+  transportation: (n) => ({
+    approvalText: `提供個案${n}，以降低外出移動風險。`,
+    shortTermGoal: `透過${n}，維持個案外出就醫安全。`,
+    midTermGoal: `透過規律${n}，維持個案規律就醫及復健。`,
+    longTermGoal: `藉由持續${n}，維持個案健康管理及社區可近性。`,
+  }),
+  respite: (n) => ({
+    approvalText: `提供主要照顧者${n}，以減輕照顧負荷並維持家庭照顧量能。`,
+    shortTermGoal: `透過${n}，減輕主要照顧者照顧負荷。`,
+    midTermGoal: `透過規律${n}，維持家庭照顧量能。`,
+    longTermGoal: `藉由持續${n}，維持家庭穩定照顧及照顧者身心健康。`,
+  }),
+  professional: (n) => ({
+    approvalText: `提供個案${n}，以維持專業照護品質及照顧安全。`,
+    shortTermGoal: `透過${n}，維持個案專業照護需求。`,
+    midTermGoal: `透過規律${n}，維持個案功能及照顧安全。`,
+    longTermGoal: `藉由持續${n}，維持個案健康狀況及生活品質。`,
+  }),
+  "assistive-device": (n) => ({
+    approvalText: `協助個案取得${n}，以提升生活自理及照顧安全。`,
+    shortTermGoal: `透過${n}，提升個案生活自理安全。`,
+    midTermGoal: `透過適切輔具使用，維持個案生活功能。`,
+    longTermGoal: `藉由持續輔具支持，維持個案獨立生活能力及照顧安全。`,
+    cautions: ["實際核定內容依輔具核定函結果為主。"],
+  }),
+  "home-modification": (n) => ({
+    approvalText: `協助個案進行${n}，以改善居家無障礙環境及照顧安全。`,
+    shortTermGoal: `透過${n}，改善居家環境安全。`,
+    midTermGoal: `透過居家無障礙改善，降低居家活動風險。`,
+    longTermGoal: `藉由居家無障礙環境，維持個案安全且穩定的居家生活。`,
+    cautions: ["實際核定內容依核定函結果為主。"],
+  }),
+  meal: (n) => ({
+    approvalText: `提供個案${n}，以維持基本營養及飲食穩定。`,
+    shortTermGoal: `透過${n}，維持個案基本營養攝取。`,
+    midTermGoal: `透過規律餐飲服務，維持個案營養狀況穩定。`,
+    longTermGoal: `藉由持續餐飲服務，維持個案健康及生活品質。`,
+  }),
+  other: (n) => ({
+    approvalText: `提供個案${n}，以維持照顧需求。`,
+    shortTermGoal: `透過${n}，維持個案照顧需求。`,
+    midTermGoal: `透過規律服務，維持個案照顧穩定。`,
+    longTermGoal: `藉由持續服務，維持個案生活品質。`,
+  }),
+};
+
+function categoryForCatalog(groupKey: string, code: string): Category {
+  switch (groupKey) {
+    case "B":
+      if (code.startsWith("BA")) return "home-care";
+      return "day-care"; // BB 日照 / BC 家庭托顧 / BD 社區式
+    case "C":
+      return "professional";
+    case "D":
+      return "transportation";
+    case "E":
+      return "assistive-device";
+    case "F":
+      return "home-modification";
+    case "G":
+    case "SC":
+      return "respite";
+    case "OT":
+      return "meal";
+    default:
+      return "other";
+  }
+}
+
+function buildFromCatalog(): Map<string, ServiceGoalTemplate> {
+  const generated = new Map<string, ServiceGoalTemplate>();
+  for (const [groupKey, group] of Object.entries(SERVICE_CATALOG)) {
+    for (const item of group.items) {
+      const category = categoryForCatalog(groupKey, item.code);
+      generated.set(item.code, {
+        serviceCode: item.code,
+        serviceName: item.name,
+        category,
+        ...CATEGORY_GOALS[category](item.name),
+      });
+    }
+  }
+  return generated;
+}
+
+const catalogTemplateMap = buildFromCatalog();
+
 /**
- * Resolve a service code to its goal template. Exact codes win; assistive
- * device codes (EAxx / EBxx) fall back to their family template, and the meal
- * code OT01 maps to the meal-service template.
+ * Resolve a service code to its goal template. Curated templates win; otherwise
+ * every catalogued service code resolves via its category default. Assistive
+ * device codes (EAxx / EBxx) keep the curated family template, and OT01 maps to
+ * the meal-service template.
  */
 export function getServiceGoalTemplate(
   serviceCode: string
 ): ServiceGoalTemplate | undefined {
   if (!serviceCode) return undefined;
-  const exact = templateMap.get(serviceCode);
-  if (exact) return exact;
+  const curated = templateMap.get(serviceCode);
+  if (curated) return curated;
   if (serviceCode.startsWith("EA")) return templateMap.get("EA");
   if (serviceCode.startsWith("EB")) return templateMap.get("EB");
   if (serviceCode === "OT01") return templateMap.get("Meal Service");
-  return undefined;
+  return catalogTemplateMap.get(serviceCode);
 }
 
 export interface ServiceGoalApproval {

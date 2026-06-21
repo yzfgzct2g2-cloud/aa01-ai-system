@@ -1,10 +1,14 @@
 import type { AA01Form, PlannedService } from "../types";
 import { buildAssessmentSummary } from "./assessmentSummary.ts";
-import { buildCareProblems } from "./problemMatrix.ts";
-import { buildServiceSuggestions } from "./serviceSuggestion.ts";
 import { buildServiceGoals, getServiceGoalTemplate } from "./serviceGoalLibrary.ts";
 import { APP_VERSION } from "../config/version.ts";
 import { getBuildInfo } from "../utils/buildInfo.ts";
+import {
+  formatFamilyProfile,
+  formatEconomicProfile,
+  formatSocialSupportProfile,
+  formatEnvironmentProfile,
+} from "../types/caseProfile.ts";
 
 function nlJoin(items: string[]) {
   return items.join("\n");
@@ -26,11 +30,6 @@ function joinSummary(items: string[]) {
     .map(trimTrailingPunctuation)
     .filter(Boolean)
     .join("；");
-}
-
-function asSentence(text: string) {
-  const normalized = trimTrailingPunctuation(text);
-  return normalized ? `${normalized}。` : missingAssessmentText;
 }
 
 function hasService(services: PlannedService[], code: string) {
@@ -148,66 +147,10 @@ export function generateProblemAnalysis(form: AA01Form) {
   };
 }
 
-export function generateGoalSuggestions(form: AA01Form) {
-  const services = form.services || [];
-  const assessmentSummary = buildAssessmentSummary(
-    form.assessmentAnswers ?? {}
-  );
-  const environmentSummary = getGhiSummary(
-    assessmentSummary,
-    "environmentSummary",
-    form,
-    "H"
-  );
-  const behaviorSummary = getGhiSummary(
-    assessmentSummary,
-    "behaviorSummary",
-    form,
-    "I"
-  );
-  const short = ["維持個案基本生活照顧穩定，降低立即性照顧風險。"];
-  const mid = [
-    "透過居家服務、專業服務或輔具環境改善，提升日常生活安全與照顧品質。",
-  ];
-  const long = [
-    "維持個案於熟悉環境中生活，延緩失能惡化並減輕照顧者負荷。",
-  ];
-
-  if (assessmentSummary.healthSummary.length) {
-    short.push("維持個案健康狀況穩定，降低特殊照護風險。");
-  }
-
-  if (environmentSummary.length) {
-    mid.push("改善居家環境安全，降低跌倒及照顧風險。");
-  }
-
-  if (behaviorSummary.length) {
-    mid.push("建立穩定照顧模式，降低情緒及行為問題對生活安全之影響。");
-  }
-
-  if (hasService(services, "BA13") || hasService(services, "BA14") || hasService(services, "DA01")) {
-    short.push("協助個案安全外出就醫、復健或參與必要活動。");
-    mid.push("維持個案規律就醫及外出活動之可近性。");
-  }
-
-  if (hasPrefix(services, "GA") || hasPrefix(services, "SC")) {
-    short.push("減輕主要照顧者照顧負荷。");
-    mid.push("維持家庭照顧量能及照顧品質。");
-  }
-
-  return {
-    short: [...new Set(short)],
-    mid: [...new Set(mid)],
-    long: [...new Set(long)],
-  };
-}
-
 export function buildAA01Draft(form: AA01Form) {
   const assessmentSummary = buildAssessmentSummary(
     form.assessmentAnswers ?? {}
   );
-  const careProblems = buildCareProblems(form.assessmentAnswers ?? {});
-  const serviceSuggestions = buildServiceSuggestions(careProblems);
 
   const services = form.services || [];
   const problems = generateProblemAnalysis(form);
@@ -302,24 +245,11 @@ export function buildAA01Draft(form: AA01Form) {
   const respiteServices = services.filter((s) => s.code.startsWith("GA") || s.code.startsWith("SC"));
   const equipmentServices = services.filter((s) => s.code.startsWith("E") || s.code.startsWith("FA"));
 
-  const systemHintLines = [
-    "系統輔助提示（需個管確認）",
-    "以下為系統依評估結果產生之提示，仍需由個管依個案實際情況判斷，不代表自動核定服務。",
-    "（一）\t照顧問題提示：",
-    ...(careProblems.length
-      ? careProblems.map(
-          (problem, index) =>
-            `${index + 1}.\t${problem.title}：${problem.description}（來源題目：${problem.sourceQuestionIds.join("、")}）`
-        )
-      : ["無系統提示。"]),
-    "（二）\t服務需求提示：",
-    ...(serviceSuggestions.length
-      ? serviceSuggestions.map(
-          (suggestion, index) =>
-            `${index + 1}.\t${suggestion.serviceCode} ${suggestion.serviceName}：${suggestion.reason}${suggestion.caution ? ` 注意：${suggestion.caution}` : ""}`
-        )
-      : ["無系統提示。"]),
-  ];
+  const caseProfile = form.caseProfile;
+  const familyText = formatFamilyProfile(caseProfile?.family);
+  const economicText = formatEconomicProfile(caseProfile?.economic);
+  const socialSupportText = formatSocialSupportProfile(caseProfile?.socialSupport);
+  const environmentProfileText = formatEnvironmentProfile(caseProfile?.environment);
 
   const lines = [
     "AA01 AI照顧計畫系統",
@@ -335,11 +265,10 @@ export function buildAA01Draft(form: AA01Form) {
     `4.\t居家環境與社會參與：${environmentAssessmentText}`,
     `5.\t情緒與行為照顧風險：${behaviorAssessmentText}`,
 
-    "(二)\t家庭功能概況：",
-    `1.\t${asSentence(form.familyNote || "")}`,
-
-    `(三)\t經濟概況：${missingAssessmentText}`,
-    `(四)\t社會支持概況：${missingAssessmentText}`,
+    `(二)\t家庭功能概況：${familyText}`,
+    `(三)\t經濟概況：${economicText}`,
+    `(四)\t社會支持概況：${socialSupportText}`,
+    `(五)\t輔具及居家環境概況：${environmentProfileText}`,
 
     "二、\t案家問題及需求：",
     `(一)\t照顧及專業服務：${problems.care.join("；") || "無。"}`,
@@ -351,8 +280,6 @@ export function buildAA01Draft(form: AA01Form) {
     `(一)\t短期目標(${rocYear}${fmtMonth(startMonth)}-${rocYear}${fmtMonth(startMonth + 1)})：${formatGoals(serviceGoals.shortTermGoals)}`,
     `(二)\t中期目標(${rocYear}${fmtMonth(startMonth + 2)}-${rocYear}${fmtMonth(startMonth + 3)})：${formatGoals(serviceGoals.midTermGoals)}`,
     `(三)\t長期目標(${rocYear}${fmtMonth(startMonth + 4)}-${rocYear}${fmtMonth(startMonth + 5)})：${formatGoals(serviceGoals.longTermGoals)}`,
-
-    ...systemHintLines,
 
     "四、\t經本次評估後，擬核定照顧服務內容如下：",
   ];
@@ -379,12 +306,6 @@ export function buildAA01Draft(form: AA01Form) {
     lines.push("(四)\t輔具服務(剩餘額度：40000元/3年)：");
     equipmentServices.forEach((s, i) => lines.push(`${i + 1}.\t${s.code}[${s.name}]*${s.quantity || "__"}${s.unit}。${approvalSuffix(s.code)}`));
     lines.push(`${equipmentServices.length + 1}.\t服務單位：${groupProviderText(equipmentServices)}。實際核定內容依輔具核定函結果為主。`);
-  }
-
-  if (serviceGoals.missingCodes.length) {
-    lines.push(
-      `（系統提醒）下列服務碼尚未建立目標模板，待補充：${serviceGoals.missingCodes.join("、")}。`
-    );
   }
 
   lines.push(

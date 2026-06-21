@@ -1,4 +1,5 @@
 import type { ServiceGroupKey, PurchaseType } from "./data/serviceCatalog";
+import type { CaseProfile } from "./types/caseProfile";
 
 export type CaseType = "新案" | "複評" | "半年AA01";
 
@@ -58,6 +59,8 @@ export interface AA01Form {
   ocrText?: string;
 
   assessmentAnswers?: Record<string, AssessmentAnswer>;
+
+  caseProfile?: CaseProfile;
 
   consciousness?: string;
   vision?: string;

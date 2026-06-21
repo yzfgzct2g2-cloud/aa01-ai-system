@@ -34,13 +34,15 @@ export function Step2PdfImport({
   const [result, setResult] = useState<PdfParseResult | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [applySummary, setApplySummary] = useState<ApplySummary | null>(null);
+  const [reading, setReading] = useState(false);
+  const [readError, setReadError] = useState<string | null>(null);
 
   const existingAnswers = form.assessmentAnswers ?? {};
   const hasExisting = (questionId: string) =>
     hasAnswerValue(existingAnswers[questionId]);
 
-  const handleParse = () => {
-    const parsed = parseAssessmentText(form.ocrText || "");
+  const runParse = (text: string) => {
+    const parsed = parseAssessmentText(text);
     const autoChecked = new Set(
       parsed.parsedAnswers
         .filter(
@@ -54,6 +56,39 @@ export function Step2PdfImport({
     setResult(parsed);
     setCheckedIds(autoChecked);
     setApplySummary(null);
+  };
+
+  const handleParse = () => runParse(form.ocrText || "");
+
+  const handleFile = async (file: File) => {
+    setReadError(null);
+    setReading(true);
+    try {
+      const { extractTextFromPdf } = await import("../rules/pdfReader");
+      const text = await extractTextFromPdf(file);
+      setForm({
+        ...form,
+        pdfFileName: file.name,
+        pdfFileSize: file.size,
+        pdfConfirmed: false,
+        ocrText: text,
+      });
+      if (text.trim()) {
+        runParse(text);
+      } else {
+        setReadError("此 PDF 未讀到可選取文字，可能為掃描影像（本階段不支援 OCR），請改用貼上文字。");
+      }
+    } catch {
+      setReadError("無法讀取此 PDF，請確認檔案是否為可選取文字的 PDF。");
+      setForm({
+        ...form,
+        pdfFileName: file.name,
+        pdfFileSize: file.size,
+        pdfConfirmed: false,
+      });
+    } finally {
+      setReading(false);
+    }
   };
 
   const toggle = (questionId: string) => {
@@ -94,17 +129,14 @@ export function Step2PdfImport({
             accept="application/pdf"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (!file) return;
-
-              setForm({
-                ...form,
-                pdfFileName: file.name,
-                pdfFileSize: file.size,
-                pdfConfirmed: false,
-              });
+              if (file) void handleFile(file);
             }}
           />
-          <p className="form-help">匯入後請確認為正確案件，OCR 解析將於後續階段提供。</p>
+          <p className="form-help">
+            上傳可選取文字的 PDF 後，系統會自動讀取文字並填入下方解析區（本階段不含 OCR，掃描影像 PDF 不支援）。
+          </p>
+          {reading && <p className="form-help">PDF 讀取中…</p>}
+          {readError && <div className="notice notice--warning">{readError}</div>}
         </div>
 
         {form.pdfFileName ? (
