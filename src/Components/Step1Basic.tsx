@@ -29,6 +29,15 @@ export function Step1Basic({
         </label>
 
         <label className="form-field">
+          <span className="form-label">案號</span>
+          <input
+            className="form-input"
+            value={form.caseNumber || ""}
+            onChange={(e) => update("caseNumber", e.target.value)}
+          />
+        </label>
+
+        <label className="form-field">
           <span className="form-label">個案姓名</span>
           <input
             className="form-input"

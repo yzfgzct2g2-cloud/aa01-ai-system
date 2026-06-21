@@ -48,6 +48,7 @@ export interface AssessmentAnswer {
 
 export interface AA01Form {
   caseType?: CaseType;
+  caseNumber?: string;
   caseName?: string;
   assessmentDate?: string;
   cmsLevel?: string;

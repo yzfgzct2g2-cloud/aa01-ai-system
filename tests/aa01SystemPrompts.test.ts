@@ -31,11 +31,26 @@ test("AA01 正文不得出現系統提示／提醒等字樣", () => {
   assert.doesNotMatch(draft, /TODO|Warning/);
 });
 
-test("AA01 標頭含系統版本與產生資訊", () => {
+test("AA01 正文不再含系統版本與產生日期時間", () => {
   const draft = buildAA01Draft({});
-  assert.match(draft, /AA01 AI照顧計畫系統/);
-  assert.match(draft, /系統版本：v/);
-  assert.match(draft, /產生日期：/);
+  assert.doesNotMatch(draft, /系統版本/);
+  assert.doesNotMatch(draft, /產生日期/);
+  assert.doesNotMatch(draft, /產生時間/);
+});
+
+test("AA01 開頭含案件基本資料，缺資料顯示待補充", () => {
+  const draft = buildAA01Draft({
+    caseNumber: "A123",
+    caseName: "王小明",
+    cmsLevel: "4",
+    caseProfile: { family: { primaryCaregiver: "配偶" } },
+  });
+  assert.match(draft, /案件基本資料/);
+  assert.match(draft, /案號：A123/);
+  assert.match(draft, /個案姓名：王小明/);
+  assert.match(draft, /CMS等級：4/);
+  assert.match(draft, /主要照顧者：配偶/);
+  assert.match(draft, /評估日期：待補充/);
 });
 
 test("Case Profile 有資料時帶入家庭/經濟/社會支持/環境段落", () => {

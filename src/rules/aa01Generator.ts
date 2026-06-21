@@ -1,8 +1,6 @@
 import type { AA01Form, PlannedService } from "../types";
 import { buildAssessmentSummary } from "./assessmentSummary.ts";
 import { buildServiceGoals, getServiceGoalTemplate } from "./serviceGoalLibrary.ts";
-import { APP_VERSION } from "../config/version.ts";
-import { getBuildInfo } from "../utils/buildInfo.ts";
 import {
   formatFamilyProfile,
   formatEconomicProfile,
@@ -155,8 +153,8 @@ export function buildAA01Draft(form: AA01Form) {
   const services = form.services || [];
   const problems = generateProblemAnalysis(form);
   const serviceGoals = buildServiceGoals(services.map((s) => s.code));
-  const buildInfo = getBuildInfo();
   const formatGoals = (items: string[]) => (items.length ? items.join("；") : "待補充");
+  const orPending = (value?: string) => (value && value.trim() ? value.trim() : "待補充");
   const approvalSuffix = (code: string) => {
     const template = getServiceGoalTemplate(code);
     return template ? `核定內容：${template.approvalText}` : "";
@@ -252,10 +250,14 @@ export function buildAA01Draft(form: AA01Form) {
   const environmentProfileText = formatEnvironmentProfile(caseProfile?.environment);
 
   const lines = [
-    "AA01 AI照顧計畫系統",
-    `系統版本：v${APP_VERSION}`,
-    `產生日期：${buildInfo.date}`,
-    `產生時間：${buildInfo.time}`,
+    "案件基本資料",
+    `案號：${orPending(form.caseNumber)}`,
+    `個案姓名：${orPending(form.caseName)}`,
+    `案件類型：${orPending(form.caseType)}`,
+    `CMS等級：${orPending(form.cmsLevel)}`,
+    `評估日期：${orPending(form.assessmentDate)}`,
+    `身分別：${orPending(form.identityType)}`,
+    `主要照顧者：${orPending(form.caseProfile?.family?.primaryCaregiver)}`,
     "",
     "一、\t個案現況評估",
     "(一)\t身心概況及照顧情形：",

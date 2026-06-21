@@ -11,8 +11,7 @@ export function Step5Output({ form }: { form: AA01Form }) {
   return (
     <StepSection title="七、AA01產出">
       <div className="field-group">
-        <p className="field-group__title">AA01 AI照顧計畫系統</p>
-        <p>版本：v{buildInfo.version}</p>
+        <p className="field-group__title">草稿產生資訊</p>
         <p>
           產生日期：{buildInfo.date}
           {" ／ "}

@@ -252,6 +252,38 @@
   cursor: pointer;
 }
 
+/* ---- App header ---------------------------------------------------- */
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
+.app-header__title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.4px;
+}
+
+.app-header__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.app-header__brand {
+  font-weight: 700;
+  color: #2563eb;
+}
+
 /* ---- Page titles --------------------------------------------------- */
 
 .page-title {

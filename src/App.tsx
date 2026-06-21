@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Stepper } from "./Components/Stepper";
+import { AppHeader } from "./Components/common/AppHeader";
 import { Step1Basic } from "./Components/Step1Basic";
 import { Step2PdfImport } from "./Components/Step2PdfImport";
 import { Step3Assessment } from "./Components/Step3Assessment";
@@ -42,7 +43,7 @@ export default function App() {
   return (
     <main className="min-h-screen bg-slate-50 p-6 text-slate-900">
       <div className="mx-auto max-w-6xl space-y-6">
-        <h1 className="text-3xl font-bold">AA01 AI 照顧計畫系統 V3</h1>
+        <AppHeader />
 
         <Stepper steps={steps} step={step} setStep={setStep} />
 
