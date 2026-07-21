@@ -2,10 +2,20 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  getRestoredQuestionId,
   getSectionProgress,
   getVisibleQuestionIds,
   inferSelectedCategories,
 } from "../src/Components/Step3Assessment.logic.ts";
+
+test("恢復導覽只接受目前題組中仍可見的題目", () => {
+  assert.equal(getRestoredQuestionId("H1e1", ["H1e", "H1e1"]), "H1e1");
+  assert.equal(getRestoredQuestionId("H2a", ["H1e", "H1e1"]), null);
+});
+
+test("缺少題目位置時不嘗試聚焦", () => {
+  assert.equal(getRestoredQuestionId(null, ["C1"]), null);
+});
 
 const gIds = [
   "G1-source",

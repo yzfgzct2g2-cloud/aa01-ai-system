@@ -91,6 +91,15 @@ export function inferSelectedCategories(section: "G" | "H" | "I", answeredQuesti
     .map((category) => category.key);
 }
 
+export function getRestoredQuestionId(
+  currentQuestion: string | null,
+  visibleQuestionIds: string[]
+) {
+  return currentQuestion && visibleQuestionIds.includes(currentQuestion)
+    ? currentQuestion
+    : null;
+}
+
 export function hasAnswer(answer?: AssessmentAnswer) {
   if (!answer) return false;
   if (Array.isArray(answer.value)) return answer.value.length > 0;

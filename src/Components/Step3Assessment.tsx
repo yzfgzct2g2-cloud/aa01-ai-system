@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { assessmentOptions } from "../data/assessmentOptions";
 import type {
@@ -8,17 +8,24 @@ import type {
 } from "../types";
 import {
   conditionalCategories,
+  getRestoredQuestionId,
   getSectionProgress,
   getVisibleQuestionIds,
   inferSelectedCategories,
 } from "./Step3Assessment.logic";
 import type { SectionKey } from "./Step3Assessment.logic";
+import type { DraftProgress } from "../persistence/draftModel";
 import "./Step3Assessment.css";
 import "./common/common.css";
 
 interface Step3AssessmentProps {
   assessmentAnswers: Record<string, AssessmentAnswer>;
   setAssessmentAnswers: Dispatch<SetStateAction<Record<string, AssessmentAnswer>>>;
+  currentSection?: SectionKey | null;
+  currentQuestion?: string | null;
+  onSectionChange?: (section: SectionKey | null) => void;
+  onQuestionChange?: (questionId: string) => void;
+  onProgressChange?: (progress: DraftProgress) => void;
 }
 
 type ConditionalSectionKey = "G" | "H" | "I";
@@ -53,12 +60,15 @@ function QuestionBlock({
   question,
   answer,
   setAssessmentAnswers,
+  onQuestionChange,
 }: {
   question: AssessmentQuestion;
   answer?: AssessmentAnswer;
   setAssessmentAnswers: Step3AssessmentProps["setAssessmentAnswers"];
+  onQuestionChange?: Step3AssessmentProps["onQuestionChange"];
 }) {
   const saveAnswer = (nextAnswer: AssessmentAnswer) => {
+    onQuestionChange?.(question.id);
     setAssessmentAnswers((currentAnswers) => ({
       ...currentAnswers,
       [question.id]: nextAnswer,
@@ -106,7 +116,12 @@ function QuestionBlock({
     : "";
 
   return (
-    <div className="assessment-question">
+    <div
+      className="assessment-question"
+      id={`assessment-question-${question.id}`}
+      tabIndex={-1}
+      onFocusCapture={() => onQuestionChange?.(question.id)}
+    >
       <div className="assessment-question__title">
         {question.id}. {question.title}
       </div>
@@ -178,8 +193,13 @@ function QuestionBlock({
 export function Step3Assessment({
   assessmentAnswers,
   setAssessmentAnswers,
+  currentSection = null,
+  currentQuestion = null,
+  onSectionChange,
+  onQuestionChange,
+  onProgressChange,
 }: Step3AssessmentProps) {
-  const [openSection, setOpenSection] = useState<SectionKey | null>("C");
+  const [openSection, setOpenSection] = useState<SectionKey | null>(currentSection ?? "C");
   const [selectedCategories, setSelectedCategories] = useState<Record<ConditionalSectionKey, string[]>>(() => {
     const answeredIds = Object.keys(assessmentAnswers);
     return {
@@ -189,6 +209,7 @@ export function Step3Assessment({
     };
   });
   const sectionRefs = useRef<Partial<Record<SectionKey, HTMLElement | null>>>({});
+  const restoredQuestionRef = useRef<string | null>(null);
 
   const getQuestions = (section: SectionKey) =>
     assessmentOptions.filter((question) => question.section === section);
@@ -228,8 +249,41 @@ export function Step3Assessment({
   );
   const overallPercent = overallTotal === 0 ? 0 : Math.round((overallAnswered / overallTotal) * 100);
 
-  const goToSection = (section: SectionKey) => {
+  useEffect(() => {
+    onProgressChange?.({
+      answered: overallAnswered,
+      total: overallTotal,
+      percent: overallPercent,
+    });
+  }, [onProgressChange, overallAnswered, overallPercent, overallTotal]);
+
+  useEffect(() => {
+    onSectionChange?.(openSection);
+  }, [onSectionChange, openSection]);
+
+  useEffect(() => {
+    if (!currentSection || openSection !== currentSection) return;
+    const visibleQuestionIds = sectionDetails[currentSection].visibleQuestions.map(
+      (question) => question.id
+    );
+    const restoredQuestion = getRestoredQuestionId(currentQuestion, visibleQuestionIds);
+    if (!restoredQuestion || restoredQuestionRef.current === restoredQuestion) return;
+
+    restoredQuestionRef.current = restoredQuestion;
+    requestAnimationFrame(() => {
+      const target = document.getElementById(`assessment-question-${restoredQuestion}`);
+      target?.scrollIntoView({ block: "center" });
+      target?.focus({ preventScroll: true });
+    });
+  }, [currentQuestion, currentSection, openSection, sectionDetails]);
+
+  const changeOpenSection = (section: SectionKey | null) => {
     setOpenSection(section);
+    onSectionChange?.(section);
+  };
+
+  const goToSection = (section: SectionKey) => {
+    changeOpenSection(section);
     requestAnimationFrame(() => {
       sectionRefs.current[section]?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -297,7 +351,7 @@ export function Step3Assessment({
                 className="assessment-section__header"
                 aria-expanded={isOpen}
                 aria-controls={`assessment-panel-${section}`}
-                onClick={() => setOpenSection(isOpen ? null : section)}
+                onClick={() => changeOpenSection(isOpen ? null : section)}
               >
                 <span className="assessment-section__heading">
                   <span className="assessment-section__chevron" aria-hidden="true">{isOpen ? "−" : "+"}</span>
@@ -350,6 +404,7 @@ export function Step3Assessment({
                       question={question}
                       answer={assessmentAnswers[question.id]}
                       setAssessmentAnswers={setAssessmentAnswers}
+                      onQuestionChange={onQuestionChange}
                     />
                   ))}
                 </div>
