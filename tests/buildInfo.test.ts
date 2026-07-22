@@ -6,7 +6,7 @@ import { APP_VERSION, LAST_UPDATE } from "../src/config/version.ts";
 
 test("版本資訊存在且與 APP_VERSION 一致", () => {
   const info = getBuildInfo();
-  assert.equal(APP_VERSION, "1.6.2");
+  assert.equal(APP_VERSION, "1.6.3");
   assert.equal(LAST_UPDATE, "2026-07-22");
   assert.equal(info.version, APP_VERSION);
   assert.ok(info.version.length > 0);

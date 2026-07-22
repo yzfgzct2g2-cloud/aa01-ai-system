@@ -173,11 +173,21 @@ export default function App() {
         {step === 6 && <Step6Review form={form} />}
         {step === 7 && <Step5Output form={form} />}
 
-        <div className="flex justify-between">
-          <button disabled={step === 0} onClick={() => void changeStep(step - 1)}>
+        <div className="app-footer-navigation">
+          <button
+            className="app-footer-navigation__button"
+            type="button"
+            disabled={step === 0}
+            onClick={() => void changeStep(step - 1)}
+          >
             上一步
           </button>
-          <button disabled={step === steps.length - 1} onClick={() => void changeStep(step + 1)}>
+          <button
+            className="app-footer-navigation__button"
+            type="button"
+            disabled={step === steps.length - 1}
+            onClick={() => void changeStep(step + 1)}
+          >
             下一步
           </button>
         </div>

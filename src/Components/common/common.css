@@ -371,6 +371,29 @@
   color: #475569;
 }
 
+/* ---- Footer navigation -------------------------------------------- */
+
+.app-footer-navigation__button {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 8px 16px;
+  font: inherit;
+  line-height: 1.25;
+}
+
+.app-footer-navigation__button + .app-footer-navigation__button {
+  margin-left: 8px;
+}
+
+.app-footer-navigation__button:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.app-footer-navigation__button:disabled {
+  cursor: not-allowed;
+}
+
 /* ---- Mobile -------------------------------------------------------- */
 
 @media (max-width: 640px) {
