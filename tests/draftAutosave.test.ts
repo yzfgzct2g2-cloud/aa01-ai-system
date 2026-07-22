@@ -74,6 +74,16 @@ test("日期、選單與清除答案要求立即保存", () => {
   ), "immediate");
 });
 
+test("G H I category selection changes request an immediate save", () => {
+  assert.equal(
+    classifyFormChange(
+      {},
+      { assessmentCategorySelections: { G: ["pain"], H: ["environment"], I: ["none"] } }
+    ),
+    "immediate"
+  );
+});
+
 test("debounce 期間只保存最後一份 snapshot", async () => {
   const persisted: string[] = [];
   const queue = new DraftSaveQueue(async (draft) => {

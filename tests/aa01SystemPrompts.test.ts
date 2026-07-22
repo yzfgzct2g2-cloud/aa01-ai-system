@@ -3,6 +3,19 @@ import test from "node:test";
 
 import { buildAA01Draft } from "../src/rules/aa01Generator.ts";
 
+test("category UI persistence does not change AA01 output", () => {
+  const assessmentAnswers = {
+    I01b: { questionId: "I01b", type: "single" as const, value: "2" },
+  };
+  const withoutUiState = buildAA01Draft({ assessmentAnswers });
+  const withUiState = buildAA01Draft({
+    assessmentAnswers,
+    assessmentCategorySelections: { I: ["I01", "none"] },
+  });
+
+  assert.equal(withUiState, withoutUiState);
+});
+
 test("AA01 正文不得出現系統提示／提醒等字樣", () => {
   const draft = buildAA01Draft({
     assessmentAnswers: {

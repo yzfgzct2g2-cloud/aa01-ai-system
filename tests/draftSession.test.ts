@@ -20,6 +20,78 @@ import {
 import type { DraftMetadataPatch } from "../src/persistence/draftRepository.ts";
 import type { LocalDraft } from "../src/persistence/draftModel.ts";
 
+test("continue restores explicit G H I category selections and keeps hidden answers", async () => {
+  const draft = createLocalDraft({
+    draftId: "category-draft",
+    form: {
+      assessmentCategorySelections: {
+        G: ["nutrition"],
+        H: ["environment"],
+        I: ["I01", "none"],
+      },
+      assessmentAnswers: {
+        G1a: { questionId: "G1a", type: "single", value: "1" },
+        I01b: { questionId: "I01b", type: "single", value: "2" },
+      },
+    },
+    currentStep: 2,
+    currentSection: "I",
+    currentQuestion: "I01b",
+    progress: { answered: 2, total: 4, percent: 50 },
+    now: "2026-07-22T04:00:00.000Z",
+  });
+  const session = await mountSession({ repository: new MemoryRepository([draft]) });
+
+  await act(async () => session.result().continueDraft(draft.draftId));
+
+  assert.deepEqual(session.hydrated[0]?.form.assessmentCategorySelections, {
+    G: ["nutrition"],
+    H: ["environment"],
+    I: ["I01", "none"],
+  });
+  assert.equal(session.hydrated[0]?.form.assessmentAnswers?.G1a.value, "1");
+  assert.equal(session.hydrated[0]?.form.assessmentAnswers?.I01b.value, "2");
+  await session.cleanup();
+});
+
+test("category selections use the existing draft save path and keep one draftId", async () => {
+  const repository = new MemoryRepository();
+  const session = await mountSession({ repository });
+
+  await session.rerender({
+    form: {
+      assessmentCategorySelections: { G: ["pain"], H: ["environment"], I: ["none"] },
+      assessmentAnswers: {
+        I01b: { questionId: "I01b", type: "single", value: "2" },
+      },
+    },
+  });
+  await act(async () => session.result().flush());
+  await session.rerender({
+    form: {
+      assessmentCategorySelections: { G: ["nutrition"], H: ["environment"], I: ["none"] },
+      assessmentAnswers: {
+        I01b: { questionId: "I01b", type: "single", value: "2" },
+      },
+    },
+  });
+  await act(async () => session.result().flush());
+
+  const saved = repository.records.get("generated-draft");
+  assert.equal(repository.records.size, 1);
+  assert.deepEqual(
+    new Set(repository.saveCalls.map((draft) => draft.draftId)),
+    new Set(["generated-draft"])
+  );
+  assert.deepEqual(saved?.form.assessmentCategorySelections, {
+    G: ["nutrition"],
+    H: ["environment"],
+    I: ["none"],
+  });
+  assert.equal(saved?.form.assessmentAnswers?.I01b.value, "2");
+  await session.cleanup();
+});
+
 function makeDraft(draftId = "saved-draft") {
   return createLocalDraft({
     draftId,

@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { assessmentOptions } from "../data/assessmentOptions";
 import type {
   AssessmentAnswer,
+  AssessmentCategorySelections,
   AssessmentOption,
   AssessmentQuestion,
 } from "../types";
@@ -11,7 +12,8 @@ import {
   getRestoredQuestionId,
   getSectionProgress,
   getVisibleQuestionIds,
-  inferSelectedCategories,
+  resolveCategorySelections,
+  updateCategorySelection,
 } from "./Step3Assessment.logic";
 import type { SectionKey } from "./Step3Assessment.logic";
 import type { DraftProgress } from "../persistence/draftModel";
@@ -21,6 +23,8 @@ import "./common/common.css";
 interface Step3AssessmentProps {
   assessmentAnswers: Record<string, AssessmentAnswer>;
   setAssessmentAnswers: Dispatch<SetStateAction<Record<string, AssessmentAnswer>>>;
+  categorySelections?: AssessmentCategorySelections;
+  setCategorySelections: Dispatch<SetStateAction<AssessmentCategorySelections>>;
   currentSection?: SectionKey | null;
   currentQuestion?: string | null;
   onSectionChange?: (section: SectionKey | null) => void;
@@ -193,6 +197,8 @@ function QuestionBlock({
 export function Step3Assessment({
   assessmentAnswers,
   setAssessmentAnswers,
+  categorySelections,
+  setCategorySelections,
   currentSection = null,
   currentQuestion = null,
   onSectionChange,
@@ -200,14 +206,12 @@ export function Step3Assessment({
   onProgressChange,
 }: Step3AssessmentProps) {
   const [openSection, setOpenSection] = useState<SectionKey | null>(currentSection ?? "C");
-  const [selectedCategories, setSelectedCategories] = useState<Record<ConditionalSectionKey, string[]>>(() => {
-    const answeredIds = Object.keys(assessmentAnswers);
-    return {
-      G: inferSelectedCategories("G", answeredIds),
-      H: inferSelectedCategories("H", answeredIds),
-      I: inferSelectedCategories("I", answeredIds),
-    };
-  });
+  const answeredIds = Object.keys(assessmentAnswers);
+  const selectedCategories: Record<ConditionalSectionKey, string[]> = {
+    G: resolveCategorySelections("G", categorySelections, answeredIds),
+    H: resolveCategorySelections("H", categorySelections, answeredIds),
+    I: resolveCategorySelections("I", categorySelections, answeredIds),
+  };
   const sectionRefs = useRef<Partial<Record<SectionKey, HTMLElement | null>>>({});
   const restoredQuestionRef = useRef<string | null>(null);
 
@@ -290,12 +294,13 @@ export function Step3Assessment({
   };
 
   const toggleCategory = (section: ConditionalSectionKey, key: string, checked: boolean) => {
-    setSelectedCategories((current) => ({
-      ...current,
-      [section]: checked
-        ? [...new Set([...current[section], key])]
-        : current[section].filter((categoryKey) => categoryKey !== key),
-    }));
+    setCategorySelections((current) => updateCategorySelection(
+      current,
+      section,
+      key,
+      checked,
+      answeredIds
+    ));
   };
 
   return (

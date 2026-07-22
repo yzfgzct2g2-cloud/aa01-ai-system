@@ -46,6 +46,11 @@ export interface AssessmentAnswer {
   text?: string;
 }
 
+export type AssessmentConditionalSection = "G" | "H" | "I";
+export type AssessmentCategorySelections = Partial<
+  Record<AssessmentConditionalSection, string[]>
+>;
+
 export interface AA01Form {
   caseType?: CaseType;
   caseNumber?: string;
@@ -60,6 +65,7 @@ export interface AA01Form {
   ocrText?: string;
 
   assessmentAnswers?: Record<string, AssessmentAnswer>;
+  assessmentCategorySelections?: AssessmentCategorySelections;
 
   caseProfile?: CaseProfile;
 

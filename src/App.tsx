@@ -12,7 +12,11 @@ import { Step5Output } from "./Components/Step5Output";
 import { Step6Review } from "./Components/Step6Review";
 import { DraftRecoveryGate } from "./Components/DraftRecoveryGate";
 import { useDraftSession } from "./hooks/useDraftSession";
-import type { AA01Form, AssessmentAnswer } from "./types";
+import type {
+  AA01Form,
+  AssessmentAnswer,
+  AssessmentCategorySelections,
+} from "./types";
 import type { DraftProgress, DraftSection } from "./persistence/draftModel";
 import "./Components/DraftRecoveryGate.css";
 
@@ -69,6 +73,18 @@ export default function App() {
           : nextAnswers;
 
       return { ...currentForm, assessmentAnswers };
+    });
+  };
+  const setAssessmentCategorySelections: Dispatch<
+    SetStateAction<AssessmentCategorySelections>
+  > = (nextSelections) => {
+    setForm((currentForm) => {
+      const currentSelections = currentForm.assessmentCategorySelections ?? {};
+      const assessmentCategorySelections = typeof nextSelections === "function"
+        ? nextSelections(currentSelections)
+        : nextSelections;
+
+      return { ...currentForm, assessmentCategorySelections };
     });
   };
 
@@ -142,6 +158,8 @@ export default function App() {
           <Step3Assessment
             assessmentAnswers={form.assessmentAnswers ?? {}}
             setAssessmentAnswers={setAssessmentAnswers}
+            categorySelections={form.assessmentCategorySelections}
+            setCategorySelections={setAssessmentCategorySelections}
             currentSection={currentSection}
             currentQuestion={currentQuestion}
             onSectionChange={setCurrentSection}

@@ -1,4 +1,8 @@
-import type { AssessmentAnswer } from "../types";
+import type {
+  AssessmentAnswer,
+  AssessmentCategorySelections,
+  AssessmentConditionalSection,
+} from "../types";
 
 export type SectionKey = "C" | "D" | "E" | "F" | "G" | "H" | "I";
 export type SectionStatus = "未填寫" | "部分完成" | "已完成";
@@ -89,6 +93,38 @@ export function inferSelectedCategories(section: "G" | "H" | "I", answeredQuesti
         )
     )
     .map((category) => category.key);
+}
+
+export function resolveCategorySelections(
+  section: AssessmentConditionalSection,
+  savedSelections: AssessmentCategorySelections | undefined,
+  answeredQuestionIds: string[]
+) {
+  const saved = savedSelections?.[section];
+  if (!Array.isArray(saved)) {
+    return inferSelectedCategories(section, answeredQuestionIds);
+  }
+
+  const validKeys = new Set(conditionalCategories[section].map((category) => category.key));
+  return [...new Set(saved.filter((key) => validKeys.has(key)))];
+}
+
+export function updateCategorySelection(
+  currentSelections: AssessmentCategorySelections | undefined,
+  section: AssessmentConditionalSection,
+  key: string,
+  checked: boolean,
+  answeredQuestionIds: string[]
+): AssessmentCategorySelections {
+  const current = resolveCategorySelections(section, currentSelections, answeredQuestionIds);
+  const next = checked
+    ? [...new Set([...current, key])]
+    : current.filter((categoryKey) => categoryKey !== key);
+
+  return {
+    ...currentSelections,
+    [section]: next,
+  };
 }
 
 export function getRestoredQuestionId(

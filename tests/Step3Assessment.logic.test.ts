@@ -6,7 +6,79 @@ import {
   getSectionProgress,
   getVisibleQuestionIds,
   inferSelectedCategories,
+  resolveCategorySelections,
+  updateCategorySelection,
 } from "../src/Components/Step3Assessment.logic.ts";
+
+test("G category recovery prefers the explicit saved selection", () => {
+  assert.deepEqual(
+    resolveCategorySelections("G", { G: ["nutrition"] }, ["G1a"]),
+    ["nutrition"]
+  );
+});
+
+test("H category recovery prefers the explicit saved selection", () => {
+  assert.deepEqual(
+    resolveCategorySelections("H", { H: ["environment"] }, ["H1a"]),
+    ["environment"]
+  );
+});
+
+test("I category recovery prefers the explicit saved selection", () => {
+  assert.deepEqual(
+    resolveCategorySelections("I", { I: ["I01"] }, ["I03b"]),
+    ["I01"]
+  );
+});
+
+test("an explicit none category survives recovery even when hidden answers remain", () => {
+  assert.deepEqual(
+    resolveCategorySelections("I", { I: ["I01", "none"] }, ["I01a", "I01b"]),
+    ["I01", "none"]
+  );
+});
+
+test("an explicit empty category selection is not replaced by inferred answers", () => {
+  assert.deepEqual(
+    resolveCategorySelections("G", { G: [] }, ["G1a"]),
+    []
+  );
+});
+
+test("legacy drafts without category state still infer categories from answers", () => {
+  assert.deepEqual(
+    resolveCategorySelections("H", undefined, ["H1e1"]),
+    ["environment"]
+  );
+  assert.deepEqual(
+    resolveCategorySelections("I", { G: ["pain"] }, ["I03b"]),
+    ["I03"]
+  );
+});
+
+test("the latest category toggle is stored without deleting other section state", () => {
+  const first = updateCategorySelection(
+    { G: ["pain"], H: ["living"] },
+    "I",
+    "I01",
+    true,
+    []
+  );
+  const latest = updateCategorySelection(first, "I", "I01", false, []);
+
+  assert.deepEqual(latest, {
+    G: ["pain"],
+    H: ["living"],
+    I: [],
+  });
+});
+
+test("category updates retain inferred legacy selections on the first explicit change", () => {
+  assert.deepEqual(
+    updateCategorySelection(undefined, "G", "nutrition", true, ["G1a"]),
+    { G: ["pain", "nutrition"] }
+  );
+});
 
 test("恢復導覽只接受目前題組中仍可見的題目", () => {
   assert.equal(getRestoredQuestionId("H1e1", ["H1e", "H1e1"]), "H1e1");

@@ -11,6 +11,27 @@ import {
   toDraftSummary,
 } from "../src/persistence/draftModel.ts";
 
+test("schema 1 drafts preserve optional category UI state without a schema bump", () => {
+  const draft = createLocalDraft({
+    draftId: "category-state",
+    form: {
+      assessmentCategorySelections: { G: ["none"], H: ["environment"], I: ["I01"] },
+    },
+    currentStep: 2,
+    currentSection: "G",
+    currentQuestion: null,
+    progress: { answered: 1, total: 1, percent: 100 },
+    now: "2026-07-21T12:00:00.000Z",
+  });
+
+  assert.equal(draft.schemaVersion, 1);
+  assert.deepEqual(draft.form.assessmentCategorySelections, {
+    G: ["none"],
+    H: ["environment"],
+    I: ["I01"],
+  });
+});
+
 const NOW = "2026-07-21T12:00:00.000Z";
 
 test("空白表單與空集合不構成可還原輸入", () => {
@@ -25,6 +46,13 @@ test("正式寫入 AA01Form 的欄位構成可還原輸入", () => {
   assert.equal(hasRecoverableUserInput({ assessmentAnswers: {
     C1: { questionId: "C1", type: "single", value: "1" },
   } }), true);
+});
+
+test("category selection alone is recoverable user input", () => {
+  assert.equal(
+    hasRecoverableUserInput({ assessmentCategorySelections: { I: ["none"] } }),
+    true
+  );
 });
 
 test("新草稿使用 schema 1、draft 狀態與 revision 1", () => {
