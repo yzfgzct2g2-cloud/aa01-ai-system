@@ -2,6 +2,7 @@ import type {
   AssessmentAnswer,
   AssessmentCategorySelections,
   AssessmentConditionalSection,
+  AssessmentOption,
 } from "../types";
 
 export type SectionKey = "C" | "D" | "E" | "F" | "G" | "H" | "I";
@@ -134,6 +135,15 @@ export function getRestoredQuestionId(
   return currentQuestion && visibleQuestionIds.includes(currentQuestion)
     ? currentQuestion
     : null;
+}
+
+export function getSelectedOptionLabel(
+  options: AssessmentOption[] | undefined,
+  value: string
+) {
+  if (!value) return null;
+  const selectedOption = options?.find((option) => option.code === value);
+  return selectedOption ? `${selectedOption.code}. ${selectedOption.label}` : null;
 }
 
 export function hasAnswer(answer?: AssessmentAnswer) {

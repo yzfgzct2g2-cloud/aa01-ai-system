@@ -276,6 +276,33 @@
   outline: 3px solid rgba(37, 99, 235, 0.15);
 }
 
+.assessment-selected-value {
+  display: none;
+  margin: 7px 0 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.assessment-selected-value strong {
+  margin-right: 4px;
+  color: #334155;
+}
+
+.assessment-selected-value__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .assessment-control--textarea {
   min-height: 96px;
   resize: vertical;
@@ -319,6 +346,10 @@
 }
 
 @media (max-width: 800px) {
+  .assessment-selected-value {
+    display: block;
+  }
+
   .assessment-layout {
     grid-template-columns: 1fr;
   }

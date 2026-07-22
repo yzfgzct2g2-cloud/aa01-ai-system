@@ -10,6 +10,7 @@ import type {
 import {
   conditionalCategories,
   getRestoredQuestionId,
+  getSelectedOptionLabel,
   getSectionProgress,
   getVisibleQuestionIds,
   resolveCategorySelections,
@@ -118,6 +119,9 @@ function QuestionBlock({
   const numberValue = answer?.type === "number" && typeof answer.value === "number"
     ? answer.value
     : "";
+  const selectedOptionLabel = getSelectedOptionLabel(question.options, singleValue);
+  const selectedValueDescriptionId = `assessment-selected-value-${question.id}-description`;
+  const selectedValueVisualId = `assessment-selected-value-${question.id}-visual`;
 
   return (
     <div
@@ -133,19 +137,39 @@ function QuestionBlock({
       {question.note && <div className="assessment-question__note">{question.note}</div>}
 
       {question.type === "single" && (
-        <select
-          aria-label={question.title}
-          className="assessment-control"
-          value={singleValue}
-          onChange={(event) => handleSingleChange(event.target.value)}
-        >
-          <option value="">請選擇</option>
-          {question.options?.map((option) => (
-            <option key={option.code} value={option.code}>
-              {option.code}. {option.label}
-            </option>
-          ))}
-        </select>
+        <>
+          <select
+            aria-label={question.title}
+            aria-describedby={selectedOptionLabel ? selectedValueDescriptionId : undefined}
+            className="assessment-control"
+            value={singleValue}
+            onChange={(event) => handleSingleChange(event.target.value)}
+          >
+            <option value="">請選擇</option>
+            {question.options?.map((option) => (
+              <option key={option.code} value={option.code}>
+                {option.code}. {option.label}
+              </option>
+            ))}
+          </select>
+          {selectedOptionLabel && (
+            <>
+              <span
+                id={selectedValueDescriptionId}
+                className="assessment-selected-value__sr"
+              >
+                目前選擇：{selectedOptionLabel}
+              </span>
+              <p
+                id={selectedValueVisualId}
+                className="assessment-selected-value"
+                aria-hidden="true"
+              >
+                <strong>目前選擇：</strong>{selectedOptionLabel}
+              </p>
+            </>
+          )}
+        </>
       )}
 
       {question.type === "multi" && (
