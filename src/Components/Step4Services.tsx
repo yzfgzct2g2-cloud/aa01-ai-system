@@ -6,12 +6,13 @@ import {
   filterEquipmentItems,
   type ServiceGroupKey,
 } from "../data/serviceCatalog";
+import { createDraftId as createLocalId } from "../persistence/draftId";
 import { StepSection } from "./common/StepSection";
 import { Button } from "./common/Button";
 
 function createEmptyService(): PlannedService {
   return {
-    id: crypto.randomUUID(),
+    id: createLocalId(),
     serviceKind: "一般服務",
     group: "B",
     code: "",
