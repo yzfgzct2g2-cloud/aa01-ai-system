@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { getBuildDate, getBuildTime, getBuildInfo } from "../src/utils/buildInfo.ts";
-import { APP_VERSION } from "../src/config/version.ts";
+import { APP_VERSION, LAST_UPDATE } from "../src/config/version.ts";
 
 test("版本資訊存在且與 APP_VERSION 一致", () => {
   const info = getBuildInfo();
+  assert.equal(APP_VERSION, "1.6.0");
+  assert.equal(LAST_UPDATE, "2026-07-22");
   assert.equal(info.version, APP_VERSION);
   assert.ok(info.version.length > 0);
 });
