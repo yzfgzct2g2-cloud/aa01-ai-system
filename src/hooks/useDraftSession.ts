@@ -10,6 +10,7 @@ import {
   createLocalDraft,
   hasRecoverableUserInput,
 } from "../persistence/draftModel";
+import { createDraftId as createDefaultDraftId } from "../persistence/draftId";
 import type {
   DraftProgress,
   DraftSection,
@@ -71,10 +72,6 @@ function defaultRepositoryInitializer() {
   return DraftRepository.initialize();
 }
 
-function defaultDraftId() {
-  return crypto.randomUUID();
-}
-
 function defaultStorage(): StorageContract | null {
   if (typeof window === "undefined") return null;
   try {
@@ -124,7 +121,7 @@ export function useDraftSession({
   progress,
   onHydrate,
   initializeRepository = defaultRepositoryInitializer,
-  createDraftId = defaultDraftId,
+  createDraftId = createDefaultDraftId,
   storage = defaultStorage(),
 }: UseDraftSessionOptions): UseDraftSessionResult {
   const [startupState, setStartupState] = useState<UseDraftSessionResult["startupState"]>("checking");
@@ -246,22 +243,27 @@ export function useDraftSession({
     const active = activeDraftRef.current;
     if (!active && !hasRecoverableUserInput(form)) return;
 
-    const draftId = active?.draftId ?? createDraftId();
-    const snapshot = buildSnapshot(active, {
-      draftId,
-      form,
-      currentStep,
-      currentSection,
-      currentQuestion,
-      progress,
-      now: new Date().toISOString(),
-    });
-    if (!active) {
-      activeDraftRef.current = snapshot;
-      setActiveDraftId(draftId);
+    try {
+      const draftId = active?.draftId ?? createDraftId();
+      const snapshot = buildSnapshot(active, {
+        draftId,
+        form,
+        currentStep,
+        currentSection,
+        currentQuestion,
+        progress,
+        now: new Date().toISOString(),
+      });
+      if (!active) {
+        activeDraftRef.current = snapshot;
+        setActiveDraftId(draftId);
+      }
+      writeNavigationHint(draftId);
+      queueRef.current.schedule(snapshot, classifyFormChange(previousForm, form));
+    } catch (reason) {
+      setSaveState("error");
+      setSaveError(errorMessage(reason, "草稿尚未儲存，最新資料仍保留在此頁面。"));
     }
-    writeNavigationHint(draftId);
-    queueRef.current.schedule(snapshot, classifyFormChange(previousForm, form));
   }, [
     createDraftId,
     currentQuestion,

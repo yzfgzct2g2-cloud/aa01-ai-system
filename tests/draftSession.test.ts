@@ -113,6 +113,8 @@ async function mountSession(options: {
   currentQuestion?: string | null;
   onHydrate?: (value: DraftHydration) => void;
   storage?: UseDraftSessionOptions["storage"];
+  createDraftId?: () => string;
+  useDefaultDraftId?: boolean;
 }) {
   const dom = new JSDOM("<!doctype html><html><body><div id='root'></div></body></html>", {
     url: "https://example.test/aa01-ai-system/",
@@ -135,7 +137,9 @@ async function mountSession(options: {
     progress: { answered: 0, total: 0, percent: 0 },
     onHydrate: options.onHydrate ?? ((value) => hydrated.push(value)),
     initializeRepository: async () => options.repository,
-    createDraftId: () => "generated-draft",
+    createDraftId: options.useDefaultDraftId
+      ? undefined
+      : options.createDraftId ?? (() => "generated-draft"),
     storage: options.storage ?? storage,
   };
   let latest!: UseDraftSessionResult;
@@ -240,6 +244,88 @@ test("首次正式輸入只建立一個 draftId 且 Step 切換沿用", async ()
   assert.ok(repository.saveCalls.length >= 2);
   assert.deepEqual(new Set(repository.saveCalls.map((draft) => draft.draftId)), new Set(["generated-draft"]));
   assert.equal(session.result().activeDraftId, "generated-draft");
+  await session.cleanup();
+});
+
+test("首次 select 輸入會建立並保存草稿", async () => {
+  const repository = new MemoryRepository();
+  const session = await mountSession({ repository });
+  await session.rerender({ form: { caseType: "新案" } });
+  await act(async () => session.result().flush());
+
+  assert.equal(repository.records.get("generated-draft")?.form.caseType, "新案");
+  assert.equal(session.result().saveState, "saved");
+  await session.cleanup();
+});
+
+test("首次 radio 或 checkbox 結構化輸入會建立並保存草稿", async () => {
+  const repository = new MemoryRepository();
+  const session = await mountSession({ repository });
+  await session.rerender({
+    form: {
+      pdfConfirmed: true,
+      assessmentAnswers: {
+        C1: { questionId: "C1", type: "single", value: "1" },
+        H1e1: { questionId: "H1e1", type: "multi", value: ["01", "03"] },
+      },
+    },
+  });
+  await act(async () => session.result().flush());
+
+  const saved = repository.records.get("generated-draft")?.form;
+  assert.equal(saved?.pdfConfirmed, true);
+  assert.equal(saved?.assessmentAnswers?.C1.value, "1");
+  assert.deepEqual(saved?.assessmentAnswers?.H1e1.value, ["01", "03"]);
+  await session.cleanup();
+});
+
+test("首次文字輸入會建立並保存草稿", async () => {
+  const repository = new MemoryRepository();
+  const session = await mountSession({ repository });
+  await session.rerender({ form: { caseName: "王小明" } });
+  await act(async () => session.result().flush());
+
+  assert.equal(repository.records.get("generated-draft")?.form.caseName, "王小明");
+  await session.cleanup();
+});
+
+test("非安全環境缺少 randomUUID 時 hook 仍使用預設產生器保存草稿", async () => {
+  const cryptoDescriptor = Object.getOwnPropertyDescriptor(globalThis, "crypto");
+  Object.defineProperty(globalThis, "crypto", {
+    configurable: true,
+    value: {
+      getRandomValues: <T extends ArrayBufferView | null>(array: T) => array,
+    },
+  });
+
+  try {
+    const repository = new MemoryRepository();
+    const session = await mountSession({ repository, useDefaultDraftId: true });
+    await session.rerender({ form: { caseType: "新案" } });
+    await act(async () => session.result().flush());
+
+    assert.equal(repository.records.size, 1);
+    assert.match(repository.saveCalls[0]?.draftId ?? "", /^[0-9a-f-]{36}$/);
+    assert.equal(repository.saveCalls[0]?.form.caseType, "新案");
+    await session.cleanup();
+  } finally {
+    if (cryptoDescriptor) Object.defineProperty(globalThis, "crypto", cryptoDescriptor);
+    else delete (globalThis as { crypto?: Crypto }).crypto;
+  }
+});
+
+test("draftId 產生器失敗時不讓 React 卸載且保留輸入並顯示錯誤", async () => {
+  const repository = new MemoryRepository();
+  const session = await mountSession({
+    repository,
+    createDraftId: () => { throw new Error("ID unavailable"); },
+  });
+
+  await assert.doesNotReject(() => session.rerender({ form: { caseName: "仍在畫面上的資料" } }));
+  assert.equal(session.result().startupState, "ready");
+  assert.equal(session.result().saveState, "error");
+  assert.match(session.result().saveError ?? "", /ID unavailable/);
+  assert.equal(repository.records.size, 0);
   await session.cleanup();
 });
 
