@@ -112,6 +112,27 @@ test("舊草稿補上安全預設值且保留完整表單", () => {
   assert.equal(migrated.form.assessmentAnswers?.H1e1Other.value, "浴室");
 });
 
+test("schema 1 migration preserves legacy Step 1 field values without normalization", () => {
+  const raw = {
+    draftId: "legacy-step-1",
+    schemaVersion: 1,
+    form: {
+      assessmentDate: "民國115年7月22日",
+      cmsLevel: "CMS第四級",
+      identityType: "低收入戶",
+    },
+    createdAt: NOW,
+    updatedAt: NOW,
+  };
+  const before = structuredClone(raw);
+
+  const migrated = migrateDraft(raw);
+
+  assert.deepEqual(migrated.form, raw.form);
+  assert.deepEqual(raw, before);
+  assert.equal(migrated.schemaVersion, 1);
+});
+
 test("較新 schema 拒絕載入且不改寫輸入物件", () => {
   const raw = { draftId: "future", form: {}, schemaVersion: 2 };
 

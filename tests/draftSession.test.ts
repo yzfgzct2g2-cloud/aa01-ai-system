@@ -268,6 +268,35 @@ test("continue 完整恢復 form、step、section、question 與原 draftId", as
   await session.cleanup();
 });
 
+test("continue does not persist normalized Step 1 display values back to a legacy draft", async () => {
+  const draft = createLocalDraft({
+    draftId: "legacy-step-1",
+    form: {
+      assessmentDate: "民國115年7月22日",
+      cmsLevel: "CMS第四級",
+      identityType: "低收入戶",
+    },
+    currentStep: 0,
+    currentSection: null,
+    currentQuestion: null,
+    progress: { answered: 0, total: 0, percent: 0 },
+    now: "2026-07-22T04:00:00.000Z",
+  });
+  const repository = new MemoryRepository([draft]);
+  const session = await mountSession({ repository });
+
+  await act(async () => {
+    await session.result().continueDraft(draft.draftId);
+    await settle();
+  });
+
+  const expectedForm = draft.form;
+  assert.deepEqual(session.hydrated[0]?.form, expectedForm);
+  assert.deepEqual(repository.records.get(draft.draftId)?.form, expectedForm);
+  assert.deepEqual(repository.saveCalls.at(-1)?.form, expectedForm);
+  await session.cleanup();
+});
+
 test("草稿載入失敗時保留 recovery 且不 hydration", async () => {
   const repository = new MemoryRepository([makeDraft()]);
   repository.loadError = new Error("讀取失敗");

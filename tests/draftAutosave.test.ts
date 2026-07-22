@@ -54,16 +54,17 @@ test("text 評估答案與自由文字欄位採 debounce", () => {
   assert.equal(classifyFormChange({}, {
     caseProfile: { socialSupport: { otherSupport: "鄰里協助" } },
   }), "debounced");
-  assert.equal(classifyFormChange({}, { cmsLevel: "第 3 級" }), "debounced");
   assert.equal(classifyFormChange(
     { services: [{ id: "service-a", quantity: "1" }] } as unknown as AA01Form,
     { services: [{ id: "service-a", quantity: "2" }] } as unknown as AA01Form
   ), "debounced");
 });
 
-test("日期、選單與清除答案要求立即保存", () => {
+test("日期、Step 1 選單與清除答案要求立即保存", () => {
   assert.equal(classifyFormChange({}, { assessmentDate: "2026-07-21" }), "immediate");
   assert.equal(classifyFormChange({}, { caseType: "新案" }), "immediate");
+  assert.equal(classifyFormChange({}, { cmsLevel: "4" }), "immediate");
+  assert.equal(classifyFormChange({}, { identityType: "class2" }), "immediate");
   assert.equal(classifyFormChange(
     { assessmentAnswers: { C1: { questionId: "C1", type: "single", value: "1" } } },
     { assessmentAnswers: {} }

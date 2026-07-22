@@ -16,6 +16,23 @@ test("category UI persistence does not change AA01 output", () => {
   assert.equal(withUiState, withoutUiState);
 });
 
+test("canonical and recognized legacy identity values use category labels in AA01 output", () => {
+  const expected = new Map([
+    ["class1", "第一類"],
+    ["class2", "第二類"],
+    ["class3", "第三類"],
+    ["低收入戶", "第一類"],
+    ["中低收入戶", "第二類"],
+    ["一般戶", "第三類"],
+  ]);
+
+  for (const [identityType, label] of expected) {
+    const draft = buildAA01Draft({ identityType });
+    assert.match(draft, new RegExp(`身分別：${label}`), identityType);
+    assert.doesNotMatch(draft, /身分別：class[123]/, identityType);
+  }
+});
+
 test("AA01 正文不得出現系統提示／提醒等字樣", () => {
   const draft = buildAA01Draft({
     assessmentAnswers: {

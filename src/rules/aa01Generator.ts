@@ -7,6 +7,7 @@ import {
   formatSocialSupportProfile,
   formatEnvironmentProfile,
 } from "../types/caseProfile.ts";
+import { formatIdentityType } from "../data/identityOptions.ts";
 
 function nlJoin(items: string[]) {
   return items.join("\n");
@@ -256,7 +257,7 @@ export function buildAA01Draft(form: AA01Form) {
     `案件類型：${orPending(form.caseType)}`,
     `CMS等級：${orPending(form.cmsLevel)}`,
     `評估日期：${orPending(form.assessmentDate)}`,
-    `身分別：${orPending(form.identityType)}`,
+    `身分別：${orPending(formatIdentityType(form.identityType))}`,
     `主要照顧者：${orPending(form.caseProfile?.family?.primaryCaregiver)}`,
     "",
     "一、\t個案現況評估",

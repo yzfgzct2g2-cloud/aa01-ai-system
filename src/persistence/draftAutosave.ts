@@ -7,8 +7,6 @@ export type DraftSaveState = "idle" | "unsaved" | "saving" | "saved" | "error";
 const FREE_TEXT_TOP_LEVEL = new Set([
   "caseName",
   "caseNumber",
-  "cmsLevel",
-  "identityType",
   "ocrText",
   "consciousness",
   "vision",
