@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  conditionalCategories,
   getRestoredQuestionId,
   getSectionProgress,
   getVisibleQuestionIds,
@@ -9,6 +10,10 @@ import {
   resolveCategorySelections,
   updateCategorySelection,
 } from "../src/Components/Step3Assessment.logic.ts";
+
+test("component logic continues to re-export the shared category definitions", () => {
+  assert.equal(conditionalCategories.G.find((category) => category.key === "skin")?.label.length > 0, true);
+});
 
 test("G category recovery prefers the explicit saved selection", () => {
   assert.deepEqual(
