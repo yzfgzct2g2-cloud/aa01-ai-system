@@ -138,3 +138,18 @@ test("effective question and answer helpers exclude inactive answers without mut
     ["D0", "G2a", "unrelated"]
   );
 });
+
+test("unmapped G H and I prefix IDs remain effective outside the Step 3 category definitions", () => {
+  const source = {
+    "General-note": single("General-note", "1"),
+    "G99-legacy": single("G99-legacy", "1"),
+    "H99-legacy": single("H99-legacy", "1"),
+    "I99-legacy": single("I99-legacy", "1"),
+  };
+  const selections: AssessmentCategorySelections = { G: ["none"], H: ["none"], I: ["none"] };
+
+  for (const questionId of Object.keys(source)) {
+    assert.equal(isStep3QuestionEffective(questionId, source, selections), true);
+  }
+  assert.deepEqual(getEffectiveAssessmentAnswers(source, selections), source);
+});

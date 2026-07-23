@@ -117,11 +117,13 @@ function isCategoryEffective(
   const section = questionId[0] as AssessmentConditionalSection;
   const selectedCategories = resolveCategorySelections(section, categorySelections, Object.keys(answers));
   const categories = conditionalCategories[section];
+  const matchingCategories = categories.filter((category) =>
+    category.questionPrefixes.some((prefix) => matchesQuestionPrefix(questionId, prefix))
+  );
+  if (matchingCategories.length === 0) return true;
   if (selectedCategories.some((key) => categories.find((category) => category.key === key)?.isNone)) return false;
 
-  return categories
-    .filter((category) => selectedCategories.includes(category.key))
-    .some((category) => category.questionPrefixes.some((prefix) => matchesQuestionPrefix(questionId, prefix)));
+  return matchingCategories.some((category) => selectedCategories.includes(category.key));
 }
 
 export function isPositiveMeasurement(value: unknown): boolean {
