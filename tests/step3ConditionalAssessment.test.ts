@@ -5,6 +5,7 @@ import type { AssessmentAnswer, AssessmentCategorySelections } from "../src/type
 import {
   getEffectiveAssessmentAnswers,
   getEffectiveStep3QuestionIds,
+  inferSelectedCategories,
   isPositiveMeasurement,
   isStep3QuestionEffective,
   shouldShowMemoryQuestions,
@@ -154,4 +155,13 @@ test("unmapped and colliding G H and I prefix IDs remain effective outside the S
     assert.equal(isStep3QuestionEffective(questionId, source, selections), true);
   }
   assert.deepEqual(getEffectiveAssessmentAnswers(source, selections), source);
+});
+
+test("legacy category inference ignores colliding unknown IDs", () => {
+  const source = { "G10-legacy": single("G10-legacy", "1") };
+
+  assert.deepEqual(inferSelectedCategories("G", Object.keys(source)), []);
+  assert.equal(isStep3QuestionEffective("G1a", source), false);
+  assert.equal(isStep3QuestionEffective("G10-legacy", source), true);
+  assert.deepEqual(getEffectiveAssessmentAnswers(source), source);
 });

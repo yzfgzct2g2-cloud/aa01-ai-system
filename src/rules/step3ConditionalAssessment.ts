@@ -78,9 +78,13 @@ export function matchesQuestionPrefix(questionId: string, prefix: string) {
 }
 
 export function inferSelectedCategories(section: "G" | "H" | "I", answeredQuestionIds: string[]) {
+  const knownAnsweredQuestionIds = answeredQuestionIds.filter((questionId) =>
+    CONDITIONAL_STEP3_QUESTION_IDS.has(questionId)
+  );
+
   return conditionalCategories[section]
     .filter((category) => !category.isNone && category.questionPrefixes.some((prefix) =>
-      answeredQuestionIds.some((questionId) => matchesQuestionPrefix(questionId, prefix))
+      knownAnsweredQuestionIds.some((questionId) => matchesQuestionPrefix(questionId, prefix))
     ))
     .map((category) => category.key);
 }
