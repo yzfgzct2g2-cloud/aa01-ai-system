@@ -139,12 +139,14 @@ test("effective question and answer helpers exclude inactive answers without mut
   );
 });
 
-test("unmapped G H and I prefix IDs remain effective outside the Step 3 category definitions", () => {
+test("unmapped and colliding G H and I prefix IDs remain effective outside the Step 3 category definitions", () => {
   const source = {
     "General-note": single("General-note", "1"),
     "G99-legacy": single("G99-legacy", "1"),
+    "G10-legacy": single("G10-legacy", "1"),
     "H99-legacy": single("H99-legacy", "1"),
     "I99-legacy": single("I99-legacy", "1"),
+    "I010-legacy": single("I010-legacy", "1"),
   };
   const selections: AssessmentCategorySelections = { G: ["none"], H: ["none"], I: ["none"] };
 

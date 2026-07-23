@@ -3,6 +3,7 @@ import type {
   AssessmentCategorySelections,
   AssessmentConditionalSection,
 } from "../types";
+import { G_ASSESSMENT, H_ASSESSMENT, I_ASSESSMENT } from "../data/assessmentOptions";
 
 export interface CategoryDefinition {
   key: string;
@@ -68,6 +69,9 @@ const G4E_SUPPLEMENTAL_CODES: Record<string, string> = {
 };
 const G4E_DETAILS_IDS = new Set(["G4e-diseases", "G4e-treatment", "G4e-medications"]);
 const G5_ITEMS_ID = "G5-items";
+const CONDITIONAL_STEP3_QUESTION_IDS = new Set(
+  [...G_ASSESSMENT, ...H_ASSESSMENT, ...I_ASSESSMENT].map((question) => question.id)
+);
 
 export function matchesQuestionPrefix(questionId: string, prefix: string) {
   return questionId === prefix || questionId.startsWith(`${prefix}-`) || questionId.startsWith(prefix);
@@ -112,7 +116,7 @@ function isCategoryEffective(
   answers: Record<string, AssessmentAnswer>,
   categorySelections: AssessmentCategorySelections | undefined
 ) {
-  if (!isConditionalSection(questionId)) return true;
+  if (!isConditionalSection(questionId) || !CONDITIONAL_STEP3_QUESTION_IDS.has(questionId)) return true;
 
   const section = questionId[0] as AssessmentConditionalSection;
   const selectedCategories = resolveCategorySelections(section, categorySelections, Object.keys(answers));
