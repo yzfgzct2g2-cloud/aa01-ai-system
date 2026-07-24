@@ -65,8 +65,10 @@ async function renderAssessment(options: {
   answers?: Record<string, AssessmentAnswer>;
   categorySelections?: AssessmentCategorySelections;
   currentSection?: SectionKey;
+  currentQuestion?: string | null;
 } = {}) {
   const dom = new JSDOM("<!doctype html><html><body><div id='root'></div></body></html>");
+  dom.window.HTMLElement.prototype.scrollIntoView = () => {};
   Object.assign(globalThis, {
     window: dom.window,
     document: dom.window.document,
@@ -94,6 +96,7 @@ async function renderAssessment(options: {
       categorySelections,
       setCategorySelections,
       currentSection: options.currentSection ?? "C",
+      currentQuestion: options.currentQuestion ?? null,
     });
   }
 

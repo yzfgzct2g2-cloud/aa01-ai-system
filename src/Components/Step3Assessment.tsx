@@ -9,7 +9,6 @@ import type {
 } from "../types";
 import {
   conditionalCategories,
-  getRestoredQuestionId,
   getSelectedOptionLabel,
   getSectionProgress,
   getVisibleQuestionIds,
@@ -18,6 +17,7 @@ import {
 } from "./Step3Assessment.logic";
 import type { SectionKey } from "./Step3Assessment.logic";
 import type { DraftProgress } from "../persistence/draftModel";
+import { getEffectiveStep3QuestionIds } from "../rules/step3ConditionalAssessment";
 import "./Step3Assessment.css";
 import "./common/common.css";
 
@@ -64,16 +64,21 @@ function isConditionalSection(section: SectionKey): section is ConditionalSectio
 function QuestionBlock({
   question,
   answer,
+  questionRef,
   setAssessmentAnswers,
+  onAnswerChange,
   onQuestionChange,
 }: {
   question: AssessmentQuestion;
   answer?: AssessmentAnswer;
+  questionRef?: (element: HTMLDivElement | null) => void;
   setAssessmentAnswers: Step3AssessmentProps["setAssessmentAnswers"];
+  onAnswerChange?: (answer: AssessmentAnswer) => void;
   onQuestionChange?: Step3AssessmentProps["onQuestionChange"];
 }) {
   const saveAnswer = (nextAnswer: AssessmentAnswer) => {
     onQuestionChange?.(question.id);
+    onAnswerChange?.(nextAnswer);
     setAssessmentAnswers((currentAnswers) => ({
       ...currentAnswers,
       [question.id]: nextAnswer,
@@ -125,6 +130,7 @@ function QuestionBlock({
 
   return (
     <div
+      ref={questionRef}
       className="assessment-question"
       id={`assessment-question-${question.id}`}
       tabIndex={-1}
@@ -224,7 +230,7 @@ export function Step3Assessment({
   categorySelections,
   setCategorySelections,
   currentSection = null,
-  currentQuestion = null,
+  currentQuestion: _currentQuestion = null,
   onSectionChange,
   onQuestionChange,
   onProgressChange,
@@ -237,7 +243,12 @@ export function Step3Assessment({
     I: resolveCategorySelections("I", categorySelections, answeredIds),
   };
   const sectionRefs = useRef<Partial<Record<SectionKey, HTMLElement | null>>>({});
-  const restoredQuestionRef = useRef<string | null>(null);
+  const questionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const pendingActionRef = useRef<{
+    questionId: string;
+    scroll: boolean;
+  } | null>(null);
+  const pendingAnimationFrameRef = useRef<number | null>(null);
 
   const getQuestions = (section: SectionKey) =>
     assessmentOptions.filter((question) => question.section === section);
@@ -255,8 +266,17 @@ export function Step3Assessment({
       selected,
       questions.map((question) => question.id)
     );
-    const visibleIdSet = new Set(visibleIds);
-    const progress = getSectionProgress(visibleIds, assessmentAnswers, selected.length > 0);
+    const effectiveVisibleIds = getEffectiveStep3QuestionIds(
+      visibleIds,
+      assessmentAnswers,
+      categorySelections
+    );
+    const visibleIdSet = new Set(effectiveVisibleIds);
+    const progress = getSectionProgress(
+      effectiveVisibleIds,
+      assessmentAnswers,
+      selected.length > 0
+    );
     return {
       questions,
       visibleQuestions: questions.filter((question) => visibleIdSet.has(question.id)),
@@ -290,20 +310,73 @@ export function Step3Assessment({
   }, [onSectionChange, openSection]);
 
   useEffect(() => {
-    if (!currentSection || openSection !== currentSection) return;
-    const visibleQuestionIds = sectionDetails[currentSection].visibleQuestions.map(
-      (question) => question.id
-    );
-    const restoredQuestion = getRestoredQuestionId(currentQuestion, visibleQuestionIds);
-    if (!restoredQuestion || restoredQuestionRef.current === restoredQuestion) return;
+    const pendingAction = pendingActionRef.current;
+    if (!pendingAction || pendingAnimationFrameRef.current !== null) return;
 
-    restoredQuestionRef.current = restoredQuestion;
-    requestAnimationFrame(() => {
-      const target = document.getElementById(`assessment-question-${restoredQuestion}`);
-      target?.scrollIntoView({ block: "center" });
-      target?.focus({ preventScroll: true });
+    const target = questionRefs.current[pendingAction.questionId];
+    const firstControl = target?.querySelector<HTMLElement>(
+      "select, textarea, input[type='number'], input[type='checkbox']"
+    );
+    if (!target || !firstControl) {
+      pendingActionRef.current = null;
+      return;
+    }
+
+    pendingAnimationFrameRef.current = requestAnimationFrame(() => {
+      if (pendingAction.scroll) {
+        firstControl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      firstControl.focus({ preventScroll: true });
+      pendingActionRef.current = null;
+      pendingAnimationFrameRef.current = null;
     });
-  }, [currentQuestion, currentSection, openSection, sectionDetails]);
+
+    return () => {
+      if (pendingAnimationFrameRef.current === null) return;
+      cancelAnimationFrame(pendingAnimationFrameRef.current);
+      pendingAnimationFrameRef.current = null;
+    };
+  }, [assessmentAnswers, categorySelections]);
+
+  const handleAnswerChange = (answer: AssessmentAnswer) => {
+    if (
+      ["G4d1", "G4d2", "G4d3"].includes(answer.questionId)
+    ) {
+      pendingActionRef.current = answer.value === "3"
+        ? { questionId: `${answer.questionId}-other`, scroll: false }
+        : null;
+      return;
+    }
+
+    if (answer.questionId === "G4e-diseases" && Array.isArray(answer.value)) {
+      const previousValue = assessmentAnswers["G4e-diseases"]?.value;
+      const previousCodes = Array.isArray(previousValue) ? previousValue : [];
+      const supplementalQuestionByCode: Record<string, string> = {
+        "08": "G4e-cancer-note",
+        "21": "G4e-infection-note",
+        "22": "G4e-rare-disease-note",
+        "24": "G4e-other-note",
+      };
+      const newlySelectedCode = answer.value.find(
+        (code) =>
+          !previousCodes.includes(code) &&
+          supplementalQuestionByCode[code]
+      );
+      pendingActionRef.current = newlySelectedCode
+        ? {
+            questionId: supplementalQuestionByCode[newlySelectedCode],
+            scroll: false,
+          }
+        : null;
+      return;
+    }
+
+    if (answer.questionId === "G5a") {
+      pendingActionRef.current = answer.value === "2"
+        ? { questionId: "G5-items", scroll: true }
+        : null;
+    }
+  };
 
   const changeOpenSection = (section: SectionKey | null) => {
     setOpenSection(section);
@@ -318,6 +391,18 @@ export function Step3Assessment({
   };
 
   const toggleCategory = (section: ConditionalSectionKey, key: string, checked: boolean) => {
+    if (checked) {
+      const firstQuestionId = getVisibleQuestionIds(
+        section,
+        [key],
+        getQuestions(section).map((question) => question.id)
+      )[0];
+      pendingActionRef.current = firstQuestionId
+        ? { questionId: firstQuestionId, scroll: true }
+        : null;
+    } else {
+      pendingActionRef.current = null;
+    }
     setCategorySelections((current) => updateCategorySelection(
       current,
       section,
@@ -384,7 +469,7 @@ export function Step3Assessment({
               >
                 <span className="assessment-section__heading">
                   <span className="assessment-section__chevron" aria-hidden="true">{isOpen ? "−" : "+"}</span>
-                  <span>{sectionTitles[section]}</span>
+                  <span id={`assessment-section-${section}-title`}>{sectionTitles[section]}</span>
                 </span>
                 <span className={`assessment-status assessment-status--${details.progress.status}`}>
                   {details.progress.status}
@@ -392,7 +477,12 @@ export function Step3Assessment({
               </button>
 
               {isOpen && (
-                <div className="assessment-section__panel" id={`assessment-panel-${section}`}>
+                <div
+                  className="assessment-section__panel"
+                  id={`assessment-panel-${section}`}
+                  role="region"
+                  aria-labelledby={`assessment-section-${section}-title`}
+                >
                   {isConditionalSection(section) && (
                     <div className="assessment-category-card">
                       <div className="assessment-category-card__intro">
@@ -430,9 +520,13 @@ export function Step3Assessment({
                   {!noneSelected && details.visibleQuestions.map((question) => (
                     <QuestionBlock
                       key={question.id}
+                      questionRef={(element) => {
+                        questionRefs.current[question.id] = element;
+                      }}
                       question={question}
                       answer={assessmentAnswers[question.id]}
                       setAssessmentAnswers={setAssessmentAnswers}
+                      onAnswerChange={handleAnswerChange}
                       onQuestionChange={onQuestionChange}
                     />
                   ))}

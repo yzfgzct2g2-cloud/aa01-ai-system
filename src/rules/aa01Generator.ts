@@ -1,6 +1,7 @@
 import type { AA01Form, PlannedService } from "../types";
 import { buildAssessmentSummary } from "./assessmentSummary.ts";
 import { buildServiceGoals, getServiceGoalTemplate } from "./serviceGoalLibrary.ts";
+import { getEffectiveAssessmentAnswers } from "./step3ConditionalAssessment.ts";
 import {
   formatFamilyProfile,
   formatEconomicProfile,
@@ -85,19 +86,26 @@ function getGhiSummary(
 
 export function generateProblemAnalysis(form: AA01Form) {
   const services = form.services || [];
+  const effectiveForm = {
+    ...form,
+    assessmentAnswers: getEffectiveAssessmentAnswers(
+      form.assessmentAnswers ?? {},
+      form.assessmentCategorySelections
+    ),
+  };
   const assessmentSummary = buildAssessmentSummary(
-    form.assessmentAnswers ?? {}
+    effectiveForm.assessmentAnswers
   );
   const environmentSummary = getGhiSummary(
     assessmentSummary,
     "environmentSummary",
-    form,
+    effectiveForm,
     "H"
   );
   const behaviorSummary = getGhiSummary(
     assessmentSummary,
     "behaviorSummary",
-    form,
+    effectiveForm,
     "I"
   );
 
@@ -147,12 +155,19 @@ export function generateProblemAnalysis(form: AA01Form) {
 }
 
 export function buildAA01Draft(form: AA01Form) {
+  const effectiveForm = {
+    ...form,
+    assessmentAnswers: getEffectiveAssessmentAnswers(
+      form.assessmentAnswers ?? {},
+      form.assessmentCategorySelections
+    ),
+  };
   const assessmentSummary = buildAssessmentSummary(
-    form.assessmentAnswers ?? {}
+    effectiveForm.assessmentAnswers
   );
 
   const services = form.services || [];
-  const problems = generateProblemAnalysis(form);
+  const problems = generateProblemAnalysis(effectiveForm);
   const serviceGoals = buildServiceGoals(services.map((s) => s.code));
   const formatGoals = (items: string[]) => (items.length ? items.join("；") : "待補充");
   const orPending = (value?: string) => (value && value.trim() ? value.trim() : "待補充");
@@ -181,25 +196,18 @@ export function buildAA01Draft(form: AA01Form) {
 
   const healthSummary = [...assessmentSummary.healthSummary];
 
-  const sofScore =
-    assessmentSummary.numericAnswers["G4d-score"];
-
-  if (sofScore !== undefined) {
-    healthSummary.push(`SOF衰弱評估分數：${sofScore}分`);
-  }
-
   const healthSummaryText = joinSummary(healthSummary);
   const environmentSummaryText =
     joinSummary(
       getGhiSummary(
         assessmentSummary,
         "environmentSummary",
-        form,
+        effectiveForm,
         "H"
       )
     ) || trimTrailingPunctuation(form.environmentNote || "");
   const behaviorSummaryText = joinSummary(
-    getGhiSummary(assessmentSummary, "behaviorSummary", form, "I")
+    getGhiSummary(assessmentSummary, "behaviorSummary", effectiveForm, "I")
   );
 
   const physicalCommunicationParts = [

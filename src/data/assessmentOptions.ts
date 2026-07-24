@@ -523,7 +523,6 @@ export const G_ASSESSMENT: AssessmentQuestion[] = [
   gQuestion("G4d1-other", "G4d1 其他說明", "text"),
   gQuestion("G4d2-other", "G4d2 其他說明", "text"),
   gQuestion("G4d3-other", "G4d3 其他說明", "text"),
-  gQuestion("G4d-score", "SOF 衰弱評估分數", "number"),
   gQuestion("G4e", "請問個案是否有經醫師診斷，且目前（6 個月內）仍存在的疾病？", "single", makeOptions([
     "否", "是",
   ], "個案目前疾病狀況", undefined, { "1": "G4f", "2": "G4e-diseases" })),
@@ -592,7 +591,7 @@ export const H_ASSESSMENT: AssessmentQuestion[] = [
   question("H1b", "請問目前哪些人與個案同住？", "multi", makeOptions([
     "配偶或同居人", "父親（含配偶或同居人的父親）", "母親（含配偶或同居人的母親）", "子女（含媳婿）",
     "兄弟姐妹", "（外）祖父母", "（外）孫子女", "其他親戚（僅包含曾祖父母、（外）曾孫子女、伯、叔、姑、舅、姨、甥、姪）",
-    "子女家輪流住", "同儕朋友", "其他（包含看護）：",
+    "子女家輪流住", "同儕朋友", "其他（包含看護）",
   ], "與個案同住者", ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11"])),
   question("H1b-other", "H1b 其他同住者說明", "text"),
   question("H1c", "請問個案居住在幾樓？", "number"),
